@@ -6,7 +6,7 @@ import { Plus } from "lucide-react";
 import { listComics } from "./actions/list-comics.action";
 import { ComicCard } from "./components/comic-card";
 import { AddComicDialog } from "./components/add-comic-dialog";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { SelectComic, comicClassEnum } from "@/db/schema";
 import {
   Select,
@@ -20,6 +20,7 @@ export default function ComicsPage() {
   const [comics, setComics] = useState<SelectComic[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedClass, setSelectedClass] = useState<string | null>(null);
+  const [selectedCity, setSelectedCity] = useState<string | null>(null);
   
   useEffect(() => {
     const fetchComics = async () => {
@@ -29,10 +30,20 @@ export default function ComicsPage() {
     fetchComics();
   }, []);
 
+  // Get unique cities from comics
+  const uniqueCities = useMemo(() => {
+    const cities = comics
+      .map(comic => comic.city)
+      .filter((city): city is string => city !== null)
+      .sort();
+    return Array.from(new Set(cities));
+  }, [comics]);
+
   const filteredComics = comics.filter(comic => {
     const matchesSearch = comic.name.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesClass = selectedClass === 'all' || !selectedClass || comic.class === selectedClass;
-    return matchesSearch && matchesClass;
+    const matchesCity = selectedCity === 'all' || !selectedCity || comic.city === selectedCity;
+    return matchesSearch && matchesClass && matchesCity;
   });
 
   return (
@@ -50,12 +61,25 @@ export default function ComicsPage() {
       <div className="flex gap-4 mb-6">
         <div className="flex-1">
           <Input
-            placeholder="Search comics..."
+            placeholder="Search by name..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="max-w-sm"
           />
         </div>
+        <Select value={selectedCity || undefined} onValueChange={setSelectedCity}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Filter by city" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Cities</SelectItem>
+            {uniqueCities.map((city) => (
+              <SelectItem key={city} value={city}>
+                {city}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         <Select value={selectedClass || undefined} onValueChange={setSelectedClass}>
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Filter by class" />
