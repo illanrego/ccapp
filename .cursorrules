@@ -1,0 +1,5 @@
+This is a Next.js project using App Router.
+We're using Drizzle as the ORM and Postgres as the database.
+We're using TailwindCSS for styling and shadcn for components.
+
+This is a comedy club app with several features.
