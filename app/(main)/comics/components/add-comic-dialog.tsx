@@ -15,41 +15,82 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { comicClassEnum } from "@/db/schema";
+import { comicClassEnum, SelectComic } from "@/db/schema";
 import { addComic } from "../actions/add-comic.action";
+import { useState } from "react";
+import { updateComic } from "../actions/update-comic.action";
 
-export function AddComicDialog({ children }: { children: React.ReactNode }) {
+interface AddComicDialogProps {
+  children: React.ReactNode;
+  onComicAdded?: () => void;
+  comic?: SelectComic;
+  mode?: 'add' | 'edit';
+}
+
+export function AddComicDialog({ children, onComicAdded, comic, mode = 'add' }: AddComicDialogProps) {
+  const [open, setOpen] = useState(false);
+
+  async function onSubmit(formData: FormData) {
+    if (mode === 'edit' && comic) {
+      formData.append('id', comic.id);
+      await updateComic(formData);
+    } else {
+      await addComic(formData);
+    }
+    setOpen(false);
+    onComicAdded?.();
+  }
+
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Add New Comic</DialogTitle>
+          <DialogTitle>{mode === 'edit' ? 'Edit Comic' : 'Add New Comic'}</DialogTitle>
         </DialogHeader>
-        <form action={addComic} className="space-y-4">
+        <form action={onSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="name">Name</Label>
-            <Input id="name" name="name" required />
+            <Input 
+              id="name" 
+              name="name" 
+              required 
+              defaultValue={comic?.name}
+            />
           </div>
           
           <div className="space-y-2">
             <Label htmlFor="picUrl">Picture URL</Label>
-            <Input id="picUrl" name="picUrl" type="url" />
+            <Input 
+              id="picUrl" 
+              name="picUrl" 
+              type="url" 
+              defaultValue={comic?.picUrl || ''}
+            />
           </div>
           
           <div className="space-y-2">
             <Label htmlFor="city">City</Label>
-            <Input id="city" name="city" />
+            <Input 
+              id="city" 
+              name="city" 
+              defaultValue={comic?.city || ''}
+            />
           </div>
           
           <div className="space-y-2">
             <Label htmlFor="socialMedia">Social Media Followers</Label>
-            <Input id="socialMedia" name="socialMedia" type="number" />
+            <Input 
+              id="socialMedia" 
+              name="socialMedia" 
+              type="number" 
+              defaultValue={comic?.socialMedia?.toString()}
+            />
           </div>
           
           <div className="space-y-2">
             <Label htmlFor="class">Class</Label>
-            <Select name="class">
+            <Select name="class" defaultValue={comic?.class || undefined}>
               <SelectTrigger>
                 <SelectValue placeholder="Select a class" />
               </SelectTrigger>
@@ -65,10 +106,17 @@ export function AddComicDialog({ children }: { children: React.ReactNode }) {
           
           <div className="space-y-2">
             <Label htmlFor="time">Stage Time (minutes)</Label>
-            <Input id="time" name="time" type="number" />
+            <Input 
+              id="time" 
+              name="time" 
+              type="number" 
+              defaultValue={comic?.time?.toString()}
+            />
           </div>
           
-          <Button type="submit" className="w-full">Add Comic</Button>
+          <Button type="submit" className="w-full">
+            {mode === 'edit' ? 'Save Changes' : 'Add Comic'}
+          </Button>
         </form>
       </DialogContent>
     </Dialog>

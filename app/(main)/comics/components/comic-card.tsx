@@ -1,45 +1,70 @@
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Trash2 } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 import { SelectComic } from "@/db/schema";
-import { deleteComic } from "../actions/delete-comic.action";
+import { Users, Pencil } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useState } from "react";
+import { AddComicDialog } from "./add-comic-dialog";
 
 interface ComicCardProps {
   comic: SelectComic;
+  onComicUpdated?: () => void;
 }
 
-export function ComicCard({ comic }: ComicCardProps) {
+export function ComicCard({ comic, onComicUpdated }: ComicCardProps) {
+  const [isHovered, setIsHovered] = useState(false);
+
   return (
-    <Card>
-      <CardHeader className="relative">
-        {comic.picUrl && (
-          <img
-            src={comic.picUrl}
-            alt={comic.name}
-            className="w-full h-48 object-cover rounded-t-lg"
-          />
-        )}
-        <div className="absolute top-2 right-2">
-          <form action={deleteComic}>
-            <input type="hidden" name="id" value={comic.id} />
-            <Button variant="destructive" size="icon">
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          </form>
+    <Card 
+      className="overflow-hidden relative group"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      <CardContent className="p-6 flex gap-6">
+        <div className="relative shrink-0">
+          {comic.picUrl ? (
+            <img
+              src={comic.picUrl}
+              alt={comic.name}
+              className="w-24 h-24 object-cover rounded-lg"
+            />
+          ) : (
+            <div className="w-24 h-24 rounded-lg bg-muted flex items-center justify-center">
+              <Users className="h-8 w-8 text-muted-foreground" />
+            </div>
+          )}
         </div>
-      </CardHeader>
-      <CardContent className="pt-4">
-        <h3 className="text-xl font-semibold mb-2">{comic.name}</h3>
-        <div className="space-y-1 text-sm text-muted-foreground">
-          <p>City: {comic.city || "Not specified"}</p>
-          <p>Social Media Followers: {comic.socialMedia?.toLocaleString() || "Not specified"}</p>
-          <p>Class: {comic.class || "Not specified"}</p>
-          <p>Stage Time: {comic.time ? `${comic.time} minutes` : "Not specified"}</p>
+        <div className="flex-1">
+          <h3 className="text-2xl font-bold tracking-tight mb-2">{comic.name}</h3>
+          <div className="flex items-center gap-3 mb-3">
+            {comic.class && (
+              <div className="inline-block px-2 py-1 rounded-md bg-primary/10 text-primary text-sm font-medium">
+                Class {comic.class}
+              </div>
+            )}
+            {comic.city && (
+              <span className="text-sm text-muted-foreground">
+                {comic.city}
+              </span>
+            )}
+          </div>
+          <div className="flex items-center text-sm text-muted-foreground">
+            <Users className="h-4 w-4 mr-1" />
+            {comic.socialMedia?.toLocaleString() || "No followers"}
+          </div>
         </div>
       </CardContent>
-      <CardFooter>
-        {/* We can add more actions here later if needed */}
-      </CardFooter>
+      
+      <div className={`absolute top-2 right-2 transition-opacity duration-200 ${isHovered ? 'opacity-100' : 'opacity-0'}`}>
+        <AddComicDialog 
+          comic={comic} 
+          onComicAdded={onComicUpdated}
+          mode="edit"
+        >
+          <Button size="icon" variant="ghost">
+            <Pencil className="h-4 w-4" />
+          </Button>
+        </AddComicDialog>
+      </div>
     </Card>
   );
 } 
