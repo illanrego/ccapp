@@ -6,8 +6,10 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function formatDate(dateString: string): string {
-  const date = new Date(dateString);
-  return new Intl.DateTimeFormat('en-US', {
+  // If the input is a date string without time, append T12:00:00 to avoid timezone issues
+  const dateWithTime = dateString.includes('T') ? dateString : `${dateString}T12:00:00`;
+  const date = new Date(dateWithTime);
+  return new Intl.DateTimeFormat('pt-BR', {
     weekday: 'long',
     year: 'numeric',
     month: 'long',

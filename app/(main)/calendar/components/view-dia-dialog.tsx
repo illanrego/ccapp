@@ -53,7 +53,7 @@ export function ViewDiaDialog({
             </Button>
           </DialogTitle>
           <DialogDescription className="text-lg">
-            {formatDate(dia.date.toISOString())}
+            {formatDate(`${dia.date.toISOString().split('T')[0]}`)}
           </DialogDescription>
         </DialogHeader>
         

@@ -40,7 +40,9 @@ export default function CalendarPage() {
 
   // Create a map of dates to events for easier lookup
   const eventDates = dias.reduce((acc, { dia }) => {
-    const date = new Date(dia.date);
+    // Create date preserving the local date values
+    const [year, month, day] = dia.date.split('T')[0].split('-').map(Number);
+    const date = new Date(year, month - 1, day);
     acc[date.toISOString().split('T')[0]] = {
       ...dia,
       date,
@@ -53,7 +55,8 @@ export default function CalendarPage() {
 
   // Create a map of dates to comics for easier lookup
   const eventComics = dias.reduce((acc, { dia, comics }) => {
-    const date = new Date(dia.date);
+    const [year, month, day] = dia.date.split('T')[0].split('-').map(Number);
+    const date = new Date(year, month - 1, day);
     const dateStr = date.toISOString().split('T')[0];
     acc[dateStr] = comics || [];
     return acc;
@@ -140,7 +143,7 @@ export default function CalendarPage() {
                       <div className={hasEvent ? "font-bold" : ""}>{date.getDate()}</div>
                       {comics && comics.length > 0 && (
                         <div className="text-xs text-muted-foreground mt-1 text-center">
-                          {comics.length} {comics.length === 1 ? "comic" : "comics"}
+                          {comics.length} {comics.length === 1 ? "comediante" : "comediantes"}
                         </div>
                       )}
                       {hasEvent && eventDates[dateStr].showName && (
@@ -157,16 +160,27 @@ export default function CalendarPage() {
         </Card>
 
         <div className="space-y-4">
-          <h2 className="text-xl font-semibold">Upcoming Shows</h2>
+          <h2 className="text-xl font-semibold">Próximos Shows</h2>
           {dias
-            .filter(({ dia }) => new Date(dia.date) >= new Date())
-            .sort((a, b) => new Date(a.dia.date).getTime() - new Date(b.dia.date).getTime())
+            .filter(({ dia }) => {
+              const [year, month, day] = dia.date.split('T')[0].split('-').map(Number);
+              const date = new Date(year, month - 1, day);
+              const today = new Date();
+              today.setHours(0, 0, 0, 0);
+              return date >= today;
+            })
+            .sort((a, b) => {
+              const [yearA, monthA, dayA] = a.dia.date.split('T')[0].split('-').map(Number);
+              const [yearB, monthB, dayB] = b.dia.date.split('T')[0].split('-').map(Number);
+              return new Date(yearA, monthA - 1, dayA).getTime() - new Date(yearB, monthB - 1, dayB).getTime();
+            })
             .map(({ dia, comics }) => (
               <Card 
                 key={dia.id} 
                 className="cursor-pointer hover:shadow-md transition-shadow"
                 onClick={() => {
-                  const date = new Date(dia.date);
+                  const [year, month, day] = dia.date.split('T')[0].split('-').map(Number);
+                  const date = new Date(year, month - 1, day);
                   setSelectedDate(date);
                   setSelectedDia({
                     ...dia,
@@ -179,7 +193,7 @@ export default function CalendarPage() {
               >
                 <CardContent className="pt-6">
                   <div className="font-medium">
-                    {formatDate(dia.date)}
+                    {formatDate(dia.date.split('T')[0])}
                   </div>
                   {dia.showName && (
                     <div className="text-sm text-muted-foreground mt-1">
@@ -188,7 +202,7 @@ export default function CalendarPage() {
                   )}
                   {comics && comics.length > 0 && (
                     <div className="text-sm text-muted-foreground mt-1">
-                      Featuring: {comics.map(c => c.name).join(", ")}
+                      Com: {comics.map(c => c.name).join(", ")}
                     </div>
                   )}
                 </CardContent>
