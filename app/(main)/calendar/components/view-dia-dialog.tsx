@@ -10,10 +10,22 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { SelectComic } from "@/db/schema";
-import { Edit } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatDate } from "@/lib/utils";
+import Link from "next/link";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface ViewDiaDialogProps {
   isOpen: boolean;
@@ -29,6 +41,7 @@ interface ViewDiaDialogProps {
   comics: SelectComic[];
   onClose: () => void;
   onEdit: () => void;
+  onDelete?: () => void;
 }
 
 export function ViewDiaDialog({
@@ -37,20 +50,14 @@ export function ViewDiaDialog({
   comics = [],
   onClose,
   onEdit,
+  onDelete,
 }: ViewDiaDialogProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle className="flex items-center justify-between">
+          <DialogTitle>
             <span className="text-2xl">{dia.showName || "Show Details"}</span>
-            <Button 
-              variant="outline" 
-              size="icon" 
-              onClick={onEdit}
-            >
-              <Edit className="h-4 w-4" />
-            </Button>
           </DialogTitle>
           <DialogDescription className="text-lg">
             {formatDate(`${dia.date.toISOString().split('T')[0]}`)}
@@ -98,22 +105,28 @@ export function ViewDiaDialog({
             <CardContent>
               <div className="space-y-2">
                 {comics.map((comic) => (
-                  <div key={comic.id} className="flex items-center justify-between p-3 border rounded-md hover:bg-muted/50 transition-colors">
-                    <div>
-                      <div className="font-medium">{comic.name}</div>
-                      <div className="text-sm text-muted-foreground flex items-center gap-2">
-                        {comic.city && <span>{comic.city}</span>}
-                        {comic.time && <span>{comic.time} min</span>}
-                        {comic.socialMedia && <span>{comic.socialMedia} followers</span>}
+                  <Link 
+                    key={comic.id} 
+                    href={`/comics/${comic.id}`}
+                    className="block"
+                  >
+                    <div className="flex items-center justify-between p-3 border rounded-md hover:bg-muted/50 transition-colors cursor-pointer">
+                      <div>
+                        <div className="font-medium">{comic.name}</div>
+                        <div className="text-sm text-muted-foreground flex items-center gap-2">
+                          {comic.city && <span>{comic.city}</span>}
+                          {comic.time && <span>{comic.time} min</span>}
+                          {comic.socialMedia && <span>{comic.socialMedia} followers</span>}
+                        </div>
                       </div>
+                      <Badge variant={comic.class === 'S' ? "destructive" : 
+                              comic.class === 'A' ? "default" : 
+                              comic.class === 'B' ? "secondary" : 
+                              "outline"}>
+                        {comic.class || "N/A"}
+                      </Badge>
                     </div>
-                    <Badge variant={comic.class === 'S' ? "destructive" : 
-                            comic.class === 'A' ? "default" : 
-                            comic.class === 'B' ? "secondary" : 
-                            "outline"}>
-                      {comic.class || "N/A"}
-                    </Badge>
-                  </div>
+                  </Link>
                 ))}
                 
                 {comics.length === 0 && (
@@ -139,12 +152,42 @@ export function ViewDiaDialog({
         </div>
         
         <DialogFooter className="gap-2 sm:gap-0">
-          <Button variant="outline" onClick={onClose}>
-            Close
-          </Button>
-          <Button variant="default" onClick={onEdit}>
-            Edit Details
-          </Button>
+          <div className="flex items-center gap-2 w-full justify-between sm:justify-end">
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive" className="gap-2">
+                  <Trash2 className="h-4 w-4" />
+                  Delete Show
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This action cannot be undone. This will permanently delete the show
+                    and remove all associated data.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction 
+                    onClick={onDelete}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  >
+                    Delete
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" onClick={onClose}>
+                Close
+              </Button>
+              <Button variant="default" onClick={onEdit}>
+                Edit Details
+              </Button>
+            </div>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>

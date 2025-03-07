@@ -15,6 +15,7 @@ import { CalendarDialog } from "./components/calendar-dialog";
 import { ViewDiaDialog } from "./components/view-dia-dialog";
 import { CalendarPreviewDialog } from "./components/calendar-preview-dialog";
 import { getDias } from "./actions/get-dias.action";
+import { deleteDia } from "./actions/delete-dia.action";
 import { CalendarSearch } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
@@ -84,6 +85,15 @@ export default function CalendarPage() {
 
   const handleEdit = () => {
     setIsEditing(true);
+  };
+
+  const handleDelete = async () => {
+    if (!selectedDia) return;
+    
+    const result = await deleteDia(selectedDia.id);
+    if (result.success) {
+      handleDialogClose();
+    }
   };
 
   return (
@@ -266,6 +276,7 @@ export default function CalendarPage() {
             comics={eventComics[selectedDate.toISOString().split('T')[0]] || []}
             onClose={handleDialogClose}
             onEdit={handleEdit}
+            onDelete={handleDelete}
           />
         ) : (
           <CalendarDialog
