@@ -2,11 +2,20 @@
 
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useState, useEffect } from "react";
 import { formatDate } from "@/lib/utils";
 import { CalendarDialog } from "./components/calendar-dialog";
 import { ViewDiaDialog } from "./components/view-dia-dialog";
+import { CalendarPreviewDialog } from "./components/calendar-preview-dialog";
 import { getDias } from "./actions/get-dias.action";
+import { CalendarSearch } from "lucide-react";
 
 interface DiaWithDateObject {
   id: number;
@@ -23,6 +32,7 @@ export default function CalendarPage() {
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [selectedDia, setSelectedDia] = useState<DiaWithDateObject>();
   const [isEditing, setIsEditing] = useState(false);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
   useEffect(() => {
     getDias().then(setDias);
@@ -73,7 +83,30 @@ export default function CalendarPage() {
 
   return (
     <div className="container py-10">
-      <h1 className="text-4xl font-bold mb-8">Calendar</h1>
+      <div className="flex flex-col gap-4 mb-8">
+        <div className="flex items-center justify-between">
+          <h1 className="text-4xl font-bold">Calendar</h1>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="default"
+                  size="default"
+                  className="flex items-center gap-2"
+                  onClick={() => setIsPreviewOpen(true)}
+                >
+                  <CalendarSearch className="h-4 w-4" />
+                  <span>View All Shows</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>See all shows with comic photos in a calendar view</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+      </div>
+      
       <div className="grid md:grid-cols-[1fr_300px] gap-8">
         <Card>
           <CardContent className="pt-6">
@@ -122,6 +155,7 @@ export default function CalendarPage() {
             />
           </CardContent>
         </Card>
+
         <div className="space-y-4">
           <h2 className="text-xl font-semibold">Upcoming Shows</h2>
           {dias
@@ -182,6 +216,14 @@ export default function CalendarPage() {
           />
         )
       )}
+
+      {/* Preview dialog */}
+      <CalendarPreviewDialog
+        isOpen={isPreviewOpen}
+        onClose={() => setIsPreviewOpen(false)}
+        eventDates={eventDates}
+        eventComics={eventComics}
+      />
     </div>
   );
 }
