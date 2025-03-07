@@ -16,6 +16,8 @@ import { ViewDiaDialog } from "./components/view-dia-dialog";
 import { CalendarPreviewDialog } from "./components/calendar-preview-dialog";
 import { getDias } from "./actions/get-dias.action";
 import { CalendarSearch } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 
 interface DiaWithDateObject {
   id: number;
@@ -85,7 +87,7 @@ export default function CalendarPage() {
   };
 
   return (
-    <div className="container py-10">
+    <div className="container max-w-[2000px] py-10">
       <div className="flex flex-col gap-4 mb-8">
         <div className="flex items-center justify-between">
           <h1 className="text-4xl font-bold">Calendar</h1>
@@ -110,9 +112,9 @@ export default function CalendarPage() {
         </div>
       </div>
       
-      <div className="grid md:grid-cols-[1fr_300px] gap-8">
-        <Card>
-          <CardContent className="pt-6">
+      <div className="grid grid-cols-1 lg:grid-cols-[5fr_1fr] xl:grid-cols-[6fr_1fr] gap-8">
+        <Card className="w-full overflow-x-auto">
+          <CardContent className="pt-6 w-full min-w-[1120px]">
             <Calendar
               mode="single"
               selected={selectedDate}
@@ -135,21 +137,65 @@ export default function CalendarPage() {
               components={{
                 DayContent: ({ date }) => {
                   const dateStr = date.toISOString().split('T')[0];
-                  const comics = eventComics[dateStr];
+                  const comics = eventComics[dateStr] || [];
                   const hasEvent = !!eventDates[dateStr];
                   
                   return (
-                    <div className="w-full h-full flex flex-col items-center justify-center">
-                      <div className={hasEvent ? "font-bold" : ""}>{date.getDate()}</div>
-                      {comics && comics.length > 0 && (
-                        <div className="text-xs text-muted-foreground mt-1 text-center">
-                          {comics.length} {comics.length === 1 ? "comediante" : "comediantes"}
-                        </div>
-                      )}
-                      {hasEvent && eventDates[dateStr].showName && (
-                        <div className="text-xs text-muted-foreground truncate max-w-full px-1">
-                          {eventDates[dateStr].showName}
-                        </div>
+                    <div className="w-full h-full min-h-[120px] p-2">
+                      <div className={`text-right mb-2 ${hasEvent ? "font-bold" : ""}`}>
+                        {date.getDate()}
+                      </div>
+                      {hasEvent && (
+                        <HoverCard>
+                          <HoverCardTrigger asChild>
+                            <div className="flex flex-col gap-1.5 items-center">
+                              {eventDates[dateStr]?.showName && (
+                                <div className="text-[15px] text-muted-foreground truncate w-full px-1 mb-1 text-center">
+                                  {eventDates[dateStr].showName}
+                                </div>
+                              )}
+                              <div className="flex flex-wrap gap-2 justify-center">
+                                {comics.slice(0, 4).map((comic) => (
+                                  <Avatar key={comic.id} className="w-14 h-14 border border-border">
+                                    <AvatarImage src={comic.picUrl || undefined} alt={comic.name} />
+                                    <AvatarFallback className="text-xs">
+                                      {comic.name.split(' ').map(n => n[0]).join('')}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                ))}
+                                {comics.length > 4 && (
+                                  <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-xs font-medium">
+                                    +{comics.length - 4}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </HoverCardTrigger>
+                          <HoverCardContent className="w-64 p-2" side="right">
+                            <div className="space-y-2">
+                              <div className="font-medium">{formatDate(date.toISOString())}</div>
+                              {eventDates[dateStr]?.showName && (
+                                <div className="text-sm font-medium">{eventDates[dateStr].showName}</div>
+                              )}
+                              <div className="text-sm text-muted-foreground">
+                                {comics.length} {comics.length === 1 ? 'comic' : 'comics'}
+                              </div>
+                              <div className="space-y-1">
+                                {comics.map((comic) => (
+                                  <div key={comic.id} className="flex items-center gap-2">
+                                    <Avatar className="w-6 h-6">
+                                      <AvatarImage src={comic.picUrl || undefined} alt={comic.name} />
+                                      <AvatarFallback className="text-[10px]">
+                                        {comic.name.split(' ').map(n => n[0]).join('')}
+                                      </AvatarFallback>
+                                    </Avatar>
+                                    <div className="text-sm">{comic.name}</div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </HoverCardContent>
+                        </HoverCard>
                       )}
                     </div>
                   );
