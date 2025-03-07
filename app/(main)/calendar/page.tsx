@@ -2,13 +2,6 @@
 
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { useState, useEffect } from "react";
 import { formatDate } from "@/lib/utils";
 import { CalendarDialog } from "./components/calendar-dialog";
@@ -16,7 +9,6 @@ import { ViewDiaDialog } from "./components/view-dia-dialog";
 import { CalendarPreviewDialog } from "./components/calendar-preview-dialog";
 import { getDias } from "./actions/get-dias.action";
 import { deleteDia } from "./actions/delete-dia.action";
-import { CalendarSearch } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 
@@ -101,24 +93,6 @@ export default function CalendarPage() {
       <div className="flex flex-col gap-4 mb-8">
         <div className="flex items-center justify-between">
           <h1 className="text-4xl font-bold">Calendar</h1>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="default"
-                  size="default"
-                  className="flex items-center gap-2"
-                  onClick={() => setIsPreviewOpen(true)}
-                >
-                  <CalendarSearch className="h-4 w-4" />
-                  <span>View All Shows</span>
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>See all shows with comic photos in a calendar view</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
         </div>
       </div>
       
@@ -148,8 +122,9 @@ export default function CalendarPage() {
                 DayContent: ({ date }) => {
                   const dateStr = date.toISOString().split('T')[0];
                   const comics = eventComics[dateStr] || [];
-                  const hasEvent = !!eventDates[dateStr];
-                  
+                  const dia = eventDates[dateStr];
+                  const hasEvent = !!dia;
+
                   return (
                     <div className="w-full h-full min-h-[120px] p-2">
                       <div className={`text-right mb-2 ${hasEvent ? "font-bold" : ""}`}>
@@ -158,15 +133,15 @@ export default function CalendarPage() {
                       {hasEvent && (
                         <HoverCard>
                           <HoverCardTrigger asChild>
-                            <div className="flex flex-col gap-1.5 items-center">
-                              {eventDates[dateStr]?.showName && (
-                                <div className="text-[15px] text-muted-foreground truncate w-full px-1 mb-1 text-center">
-                                  {eventDates[dateStr].showName}
+                            <div>
+                              {dia.showName && (
+                                <div className="text-[13px] text-muted-foreground truncate w-full px-1 mb-2 text-center">
+                                  {dia.showName}
                                 </div>
                               )}
-                              <div className="flex flex-wrap gap-2 justify-center">
+                              <div className="grid grid-cols-2 gap-1 justify-items-center">
                                 {comics.slice(0, 4).map((comic) => (
-                                  <Avatar key={comic.id} className="w-14 h-14 border border-border">
+                                  <Avatar key={comic.id} className="w-12 h-12 border border-border">
                                     <AvatarImage src={comic.picUrl || undefined} alt={comic.name} />
                                     <AvatarFallback className="text-xs">
                                       {comic.name.split(' ').map(n => n[0]).join('')}
@@ -174,8 +149,10 @@ export default function CalendarPage() {
                                   </Avatar>
                                 ))}
                                 {comics.length > 4 && (
-                                  <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-xs font-medium">
-                                    +{comics.length - 4}
+                                  <div className="col-span-2 mt-1 text-center">
+                                    <div className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-muted text-[11px] font-medium">
+                                      +{comics.length - 4}
+                                    </div>
                                   </div>
                                 )}
                               </div>
@@ -184,8 +161,8 @@ export default function CalendarPage() {
                           <HoverCardContent className="w-64 p-2" side="right">
                             <div className="space-y-2">
                               <div className="font-medium">{formatDate(date.toISOString())}</div>
-                              {eventDates[dateStr]?.showName && (
-                                <div className="text-sm font-medium">{eventDates[dateStr].showName}</div>
+                              {dia.showName && (
+                                <div className="text-sm font-medium">{dia.showName}</div>
                               )}
                               <div className="text-sm text-muted-foreground">
                                 {comics.length} {comics.length === 1 ? 'comic' : 'comics'}

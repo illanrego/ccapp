@@ -14,10 +14,10 @@ import { Label } from "@/components/ui/label";
 import { SelectComic } from "@/db/schema";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { ComicSelect } from "./comic-select";
-import { Plus, X } from "lucide-react";
+import { X } from "lucide-react";
 import { addDia } from "../actions/add-dia.action";
 import { updateDia } from "../actions/update-dia.action";
+import { ComicSearch } from "./comic-search";
 
 interface CalendarDialogProps {
   selectedDate?: Date;
@@ -33,6 +33,17 @@ interface CalendarDialogProps {
   comics?: SelectComic[];
   onClose?: () => void;
 }
+
+// Portuguese weekday names
+const weekDays = {
+  0: 'Domingo',
+  1: 'Segunda-feira',
+  2: 'Terça-feira',
+  3: 'Quarta-feira',
+  4: 'Quinta-feira',
+  5: 'Sexta-feira',
+  6: 'Sábado'
+};
 
 export function CalendarDialog({
   selectedDate,
@@ -52,6 +63,11 @@ export function CalendarDialog({
 
   const handleRemoveComic = (comicId: string) => {
     setSelectedComics(selectedComics.filter(c => c.id !== comicId));
+  };
+
+  const formatDateBR = (date: Date) => {
+    const weekDay = weekDays[date.getDay() as keyof typeof weekDays];
+    return `${weekDay}, ${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear()}`;
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -93,8 +109,8 @@ export function CalendarDialog({
           <DialogTitle>
             {dia ? "Edit Show Details" : "Add New Show"}
           </DialogTitle>
-          <DialogDescription>
-            {selectedDate?.toLocaleDateString()}
+          <DialogDescription className="text-xl font-medium">
+            {selectedDate && formatDateBR(selectedDate)}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
@@ -126,25 +142,10 @@ export function CalendarDialog({
                     </Button>
                   </div>
                 ))}
-                <div className="flex items-center gap-2">
-                  <div className="flex-1">
-                    <ComicSelect
-                      onChange={handleAddComic}
-                      excludeComicIds={selectedComics.map(c => c.id)}
-                    />
-                  </div>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => {
-                      const select = document.querySelector('[role="combobox"]') as HTMLElement;
-                      if (select) select.click();
-                    }}
-                  >
-                    <Plus className="h-4 w-4" />
-                  </Button>
-                </div>
+                <ComicSearch
+                  onComicSelect={handleAddComic}
+                  excludeComicIds={selectedComics.map(c => c.id)}
+                />
               </div>
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
