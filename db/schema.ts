@@ -1,5 +1,5 @@
 import { relations } from 'drizzle-orm';
-import { pgTable, text, timestamp, uuid, serial, integer, date, numeric, pgEnum, primaryKey } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, uuid, serial, integer, date, numeric, pgEnum, primaryKey, decimal } from 'drizzle-orm/pg-core';
 
 export const usersTable = pgTable('users_table', {
     id: text('id').primaryKey(),
@@ -36,8 +36,8 @@ export const diasTable = pgTable('dias', {
     date: date('date').notNull(),
     showName: text('show_name'),
     ticketsSold: integer('tickets_sold'),
-    ticketsRevenue: numeric('tickets_revenue'),
-    barRevenue: numeric('bar_revenue'),
+    ticketsRevenue: decimal('tickets_revenue', { precision: 10, scale: 2 }),
+    barRevenue: decimal('bar_revenue', { precision: 10, scale: 2 }),
     showQuality: text('show_quality'),
 });
 

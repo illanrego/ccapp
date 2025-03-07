@@ -8,6 +8,13 @@
       "when": 1741264521036,
       "tag": "0000_cynical_blonde_phantom",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1741360344333,
+      "tag": "0001_redundant_deathstrike",
+      "breakpoints": true
     }
   ]
 }

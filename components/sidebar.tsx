@@ -24,7 +24,7 @@ export function Sidebar({ className }: { className?: string }) {
               className="w-full justify-start gap-2"
               asChild
             >
-              <Link href="/calendario"><Calendar className="h-5 w-5" /> Calendario</Link>
+              <Link href="/calendar"><Calendar className="h-5 w-5" /> Calendario</Link>
             </Button>
             <Button
               variant="ghost"
