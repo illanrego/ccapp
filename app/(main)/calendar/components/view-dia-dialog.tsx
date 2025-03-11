@@ -10,154 +10,216 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { SelectComic } from "@/db/schema";
-import { Trash2 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { formatDate } from "@/lib/utils";
-import Link from "next/link";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { deleteShow } from "../actions/delete-dia.action";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Calendar, Clock, DollarSign, Ticket, Users, Star, BarChart } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 
-interface ViewDiaDialogProps {
-  isOpen: boolean;
-  dia: {
+interface ViewShowDialogProps {
+  selectedDate?: Date;
+  show: {
     id: number;
     date: Date;
+    startTime?: string | null;
     showName?: string | null;
     ticketsSold?: number | null;
     ticketsRevenue?: number | null;
     barRevenue?: number | null;
     showQuality?: string | null;
   };
-  comics: SelectComic[];
-  onClose: () => void;
-  onEdit: () => void;
+  comics?: SelectComic[];
+  onClose?: () => void;
+  onEdit?: () => void;
   onDelete?: () => void;
 }
 
-export function ViewDiaDialog({
-  isOpen,
-  dia,
+export function ViewShowDialog({
+  selectedDate,
+  show,
   comics = [],
   onClose,
   onEdit,
   onDelete,
-}: ViewDiaDialogProps) {
+}: ViewShowDialogProps) {
+  const router = useRouter();
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDelete = async () => {
+    setIsDeleting(true);
+    try {
+      const result = await deleteShow(show.id);
+      if (result.success) {
+        router.refresh();
+        onDelete?.();
+        onClose?.();
+      } else {
+        console.error("Failed to delete show:", result.error);
+      }
+    } catch (error) {
+      console.error("Failed to delete show:", error);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const formatCurrency = (value: number | null | undefined) => {
+    if (value === null || value === undefined) return "—";
+    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+  };
+
+  const getQualityColor = (quality: string | null | undefined) => {
+    if (!quality) return "bg-gray-200 text-gray-700";
+    
+    switch (quality.toLowerCase()) {
+      case "excellent":
+        return "bg-green-100 text-green-800";
+      case "good":
+        return "bg-blue-100 text-blue-800";
+      case "average":
+        return "bg-yellow-100 text-yellow-800";
+      case "poor":
+        return "bg-red-100 text-red-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[600px]">
-        <DialogHeader>
-          <DialogTitle>
-            <span className="text-2xl">{dia.showName || "Show Details"}</span>
-          </DialogTitle>
-          <DialogDescription className="text-lg">
-            {formatDate(`${dia.date.toISOString().split('T')[0]}`)}
-          </DialogDescription>
-        </DialogHeader>
+    <Dialog open={!!selectedDate} onOpenChange={() => onClose?.()}>
+      <DialogContent className="sm:max-w-[550px] p-0 overflow-hidden">
+        <div className="bg-primary/10 p-6">
+          <DialogHeader className="mb-2">
+            <div className="flex items-center gap-2">
+              <Calendar className="h-5 w-5 text-primary" />
+              <DialogTitle className="text-xl">Show Details</DialogTitle>
+            </div>
+            <DialogDescription className="text-2xl font-bold mt-2">
+              {show.showName || "Untitled Show"}
+            </DialogDescription>
+            <div className="flex items-center gap-2 mt-1 text-muted-foreground">
+              <Calendar className="h-4 w-4" />
+              <span>{formatDate(selectedDate?.toISOString() || '')}</span>
+              {show.startTime && (
+                <>
+                  <span>•</span>
+                  <Clock className="h-4 w-4" />
+                  <span>{show.startTime}</span>
+                </>
+              )}
+            </div>
+          </DialogHeader>
+        </div>
         
-        <div className="space-y-6">
-          {/* Show details */}
-          <div className="grid grid-cols-2 gap-4">
-            <Card className="border-l-4 border-l-primary">
-              <CardHeader className="pb-2">
-                <CardTitle>Tickets</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold">{dia.ticketsSold || 0}</div>
-                <div className="text-muted-foreground">
-                  Revenue: {dia.ticketsRevenue ? `$${Number(dia.ticketsRevenue).toFixed(2)}` : '$0.00'}
+        <div className="p-6 space-y-6 max-h-[60vh] overflow-y-auto">
+          {/* Comics Section */}
+          {comics.length > 0 && (
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2 mb-3 text-primary font-medium">
+                  <Users className="h-5 w-5" />
+                  <h3>Lineup</h3>
                 </div>
-              </CardContent>
-            </Card>
-            
-            <Card className="border-l-4 border-l-primary">
-              <CardHeader className="pb-2">
-                <CardTitle>Bar</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold">${Number(dia.barRevenue || 0).toFixed(2)}</div>
-                <div className="text-muted-foreground">
-                  Total Revenue: ${(Number(dia.ticketsRevenue || 0) + Number(dia.barRevenue || 0)).toFixed(2)}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-          
-          {/* Comics */}
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="flex items-center justify-between">
-                <span>Comics</span>
-                <Badge variant="outline" className="ml-2">
-                  {comics.length} {comics.length === 1 ? "comic" : "comics"}
-                </Badge>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                {comics.map((comic) => (
-                  <Link 
-                    key={comic.id} 
-                    href={`/comics/${comic.id}`}
-                    className="block"
-                  >
-                    <div className="flex items-center justify-between p-3 border rounded-md hover:bg-muted/50 transition-colors cursor-pointer">
+                <div className="space-y-3">
+                  {comics.map((comic) => (
+                    <div key={comic.id} className="flex items-center gap-3 p-2 rounded-md hover:bg-muted/50 transition-colors">
+                      <Avatar className="h-10 w-10 border">
+                        <AvatarImage src={comic.picUrl || undefined} alt={comic.name} />
+                        <AvatarFallback className="text-xs bg-primary/10">
+                          {comic.name.split(' ').map(n => n[0]).join('')}
+                        </AvatarFallback>
+                      </Avatar>
                       <div>
                         <div className="font-medium">{comic.name}</div>
-                        <div className="text-sm text-muted-foreground flex items-center gap-2">
-                          {comic.city && <span>{comic.city}</span>}
-                          {comic.time && <span>{comic.time} min</span>}
-                          {comic.socialMedia && <span>{comic.socialMedia} followers</span>}
-                        </div>
+                        {comic.city && <div className="text-xs text-muted-foreground">{comic.city}</div>}
                       </div>
-                      <Badge variant={comic.class === 'S' ? "destructive" : 
-                              comic.class === 'A' ? "default" : 
-                              comic.class === 'B' ? "secondary" : 
-                              "outline"}>
-                        {comic.class || "N/A"}
-                      </Badge>
                     </div>
-                  </Link>
-                ))}
-                
-                {comics.length === 0 && (
-                  <div className="text-center py-6 text-muted-foreground">
-                    No comics assigned to this show
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-          
-          {/* Show Quality */}
-          {dia.showQuality && (
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Performance Metrics */}
+          {(show.ticketsSold !== null || show.ticketsRevenue !== null || show.barRevenue !== null) && (
             <Card>
-              <CardHeader className="pb-2">
-                <CardTitle>Show Quality</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-lg italic">&ldquo;{dia.showQuality}&rdquo;</div>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2 mb-3 text-primary font-medium">
+                  <BarChart className="h-5 w-5" />
+                  <h3>Performance</h3>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  {show.ticketsSold !== null && (
+                    <div className="flex flex-col p-3 rounded-md bg-muted/30">
+                      <div className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
+                        <Ticket className="h-3 w-3" /> Tickets Sold
+                      </div>
+                      <div className="text-xl font-semibold">{show.ticketsSold}</div>
+                    </div>
+                  )}
+                  
+                  {show.ticketsRevenue !== null && (
+                    <div className="flex flex-col p-3 rounded-md bg-muted/30">
+                      <div className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
+                        <DollarSign className="h-3 w-3" /> Ticket Revenue
+                      </div>
+                      <div className="text-xl font-semibold">{formatCurrency(show.ticketsRevenue)}</div>
+                    </div>
+                  )}
+                  
+                  {show.barRevenue !== null && (
+                    <div className="flex flex-col p-3 rounded-md bg-muted/30">
+                      <div className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
+                        <BarChart className="h-3 w-3" /> Bar Revenue
+                      </div>
+                      <div className="text-xl font-semibold">{formatCurrency(show.barRevenue)}</div>
+                    </div>
+                  )}
+                  
+                  {show.ticketsRevenue !== null && show.barRevenue !== null && (
+                    <div className="flex flex-col p-3 rounded-md bg-primary/10">
+                      <div className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
+                        <DollarSign className="h-3 w-3" /> Total Revenue
+                      </div>
+                      <div className="text-xl font-semibold">
+                        {formatCurrency((show.ticketsRevenue || 0) + (show.barRevenue || 0))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Show Quality */}
+          {show.showQuality && (
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2 mb-3 text-primary font-medium">
+                  <Star className="h-5 w-5" />
+                  <h3>Quality Rating</h3>
+                </div>
+                <Badge className={`text-sm px-3 py-1 ${getQualityColor(show.showQuality)}`}>
+                  {show.showQuality}
+                </Badge>
               </CardContent>
             </Card>
           )}
         </div>
         
-        <DialogFooter className="gap-2 sm:gap-0">
-          <div className="flex items-center gap-2 w-full justify-between sm:justify-end">
+        <Separator />
+        
+        <DialogFooter className="p-4 flex justify-between">
+          <div className="flex gap-2">
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <Button variant="destructive" className="gap-2">
-                  <Trash2 className="h-4 w-4" />
-                  Delete Show
+                <Button variant="destructive" size="sm" disabled={isDeleting}>
+                  Delete
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
@@ -165,31 +227,33 @@ export function ViewDiaDialog({
                   <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                   <AlertDialogDescription>
                     This action cannot be undone. This will permanently delete the show
-                    and remove all associated data.
+                    and all associated data.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction 
-                    onClick={onDelete}
-                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                  >
+                  <AlertDialogAction onClick={handleDelete}>
                     Delete
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
-            <div className="flex items-center gap-2">
-              <Button variant="outline" onClick={onClose}>
-                Close
-              </Button>
-              <Button variant="default" onClick={onEdit}>
-                Edit Details
-              </Button>
-            </div>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={onClose}>
+              Close
+            </Button>
+            <Button size="sm" onClick={onEdit}>
+              Edit
+            </Button>
           </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>
   );
+}
+
+// Keep the old component for backward compatibility
+export function ViewDiaDialog(props: ViewShowDialogProps) {
+  return <ViewShowDialog {...props} />;
 } 

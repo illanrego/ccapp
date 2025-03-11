@@ -1,6 +1,6 @@
 import { db } from "@/db";
 import { showsTable, comicsShowsTable, InsertShow, comicsTable } from "@/db/schema";
-import { eq, and } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 
 export async function updateShowService(id: number, show: Omit<InsertShow, 'id'>, comicIds: string[]) {
     // Ensure date is in the correct format (YYYY-MM-DD)
@@ -49,9 +49,4 @@ export async function updateShowService(id: number, show: Omit<InsertShow, 'id'>
         show: updatedShow,
         comics
     };
-}
-
-// Keep the old function for backward compatibility
-export async function updateDiaService(id: number, dia: any, comicIds: string[]) {
-    return updateShowService(id, dia, comicIds);
 } 

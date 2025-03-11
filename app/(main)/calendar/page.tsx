@@ -5,16 +5,19 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useState, useEffect } from "react";
 import { formatDate } from "@/lib/utils";
 import { CalendarDialog } from "./components/calendar-dialog";
-import { ViewDiaDialog } from "./components/view-dia-dialog";
+import { ViewShowDialog } from "./components/view-dia-dialog";
 import { CalendarPreviewDialog } from "./components/calendar-preview-dialog";
-import { getDias } from "./actions/get-dias.action";
-import { deleteDia } from "./actions/delete-dia.action";
+import { getShows } from "./actions/get-dias.action";
+import { deleteShow } from "./actions/delete-dia.action";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
+import { Badge } from "@/components/ui/badge";
+import { SelectComic } from "@/db/schema";
 
-interface DiaWithDateObject {
+interface ShowWithDateObject {
   id: number;
   date: Date;
+  startTime?: string | null;
   showName?: string | null;
   ticketsSold?: number | null;
   ticketsRevenue?: number | null;
@@ -23,56 +26,71 @@ interface DiaWithDateObject {
 }
 
 export default function CalendarPage() {
-  const [dias, setDias] = useState<Awaited<ReturnType<typeof getDias>>>([]);
+  const [shows, setShows] = useState<Awaited<ReturnType<typeof getShows>>>([]);
   const [selectedDate, setSelectedDate] = useState<Date>();
-  const [selectedDia, setSelectedDia] = useState<DiaWithDateObject>();
+  const [selectedShow, setSelectedShow] = useState<ShowWithDateObject>();
   const [isEditing, setIsEditing] = useState(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
   useEffect(() => {
-    getDias().then(setDias);
+    getShows().then(setShows);
   }, []);
 
-  // Create a map of dates to events for easier lookup
-  const eventDates = dias.reduce((acc, { dia }) => {
+  // Create a map of dates to shows for easier lookup
+  const eventDates = shows.reduce((acc, { show }) => {
     // Create date preserving the local date values
-    const [year, month, day] = dia.date.split('T')[0].split('-').map(Number);
-    const date = new Date(year, month - 1, day);
-    acc[date.toISOString().split('T')[0]] = {
-      ...dia,
-      date,
-      ticketsSold: dia.ticketsSold,
-      ticketsRevenue: Number(dia.ticketsRevenue),
-      barRevenue: Number(dia.barRevenue),
-    };
-    return acc;
-  }, {} as Record<string, DiaWithDateObject>);
-
-  // Create a map of dates to comics for easier lookup
-  const eventComics = dias.reduce((acc, { dia, comics }) => {
-    const [year, month, day] = dia.date.split('T')[0].split('-').map(Number);
+    const [year, month, day] = show.date.split('T')[0].split('-').map(Number);
     const date = new Date(year, month - 1, day);
     const dateStr = date.toISOString().split('T')[0];
-    acc[dateStr] = comics || [];
+    
+    if (!acc[dateStr]) {
+      acc[dateStr] = [];
+    }
+    
+    acc[dateStr].push({
+      ...show,
+      date,
+      ticketsSold: show.ticketsSold,
+      ticketsRevenue: Number(show.ticketsRevenue),
+      barRevenue: Number(show.barRevenue),
+    });
+    
     return acc;
-  }, {} as Record<string, NonNullable<(typeof dias)[number]["comics"]>>);
+  }, {} as Record<string, ShowWithDateObject[]>);
+
+  // Create a map of dates to comics for easier lookup
+  const eventComics = shows.reduce((acc, { show, comics }) => {
+    const [year, month, day] = show.date.split('T')[0].split('-').map(Number);
+    const date = new Date(year, month - 1, day);
+    const dateStr = date.toISOString().split('T')[0];
+    
+    if (!acc[dateStr]) {
+      acc[dateStr] = {};
+    }
+    
+    acc[dateStr][show.id] = comics || [];
+    return acc;
+  }, {} as Record<string, Record<number, SelectComic[]>>);
 
   const handleDateSelect = (date: Date | undefined) => {
     setSelectedDate(date);
     setIsEditing(false);
-    if (date) {
-      const dateStr = date.toISOString().split('T')[0];
-      setSelectedDia(eventDates[dateStr]);
-    } else {
-      setSelectedDia(undefined);
-    }
+    setSelectedShow(undefined);
+    
+    // When selecting a date with multiple shows, don't auto-select any show
+    // The user will need to click on a specific show
+  };
+
+  const handleShowSelect = (show: ShowWithDateObject) => {
+    setSelectedShow(show);
+    setIsEditing(false);
   };
 
   const handleDialogClose = () => {
     setSelectedDate(undefined);
-    setSelectedDia(undefined);
+    setSelectedShow(undefined);
     setIsEditing(false);
-    getDias().then(setDias);
+    getShows().then(setShows);
   };
 
   const handleEdit = () => {
@@ -80,9 +98,9 @@ export default function CalendarPage() {
   };
 
   const handleDelete = async () => {
-    if (!selectedDia) return;
+    if (!selectedShow) return;
     
-    const result = await deleteDia(selectedDia.id);
+    const result = await deleteShow(selectedShow.id);
     if (result.success) {
       handleDialogClose();
     }
@@ -106,7 +124,7 @@ export default function CalendarPage() {
               modifiers={{
                 event: (date) => {
                   const dateStr = date.toISOString().split('T')[0];
-                  return !!eventDates[dateStr];
+                  return !!eventDates[dateStr]?.length;
                 },
               }}
               modifiersStyles={{
@@ -121,9 +139,8 @@ export default function CalendarPage() {
               components={{
                 DayContent: ({ date }) => {
                   const dateStr = date.toISOString().split('T')[0];
-                  const comics = eventComics[dateStr] || [];
-                  const dia = eventDates[dateStr];
-                  const hasEvent = !!dia;
+                  const showsOnDate = eventDates[dateStr] || [];
+                  const hasEvent = showsOnDate.length > 0;
 
                   return (
                     <div className="w-full h-full min-h-[120px] p-2">
@@ -131,58 +148,104 @@ export default function CalendarPage() {
                         {date.getDate()}
                       </div>
                       {hasEvent && (
-                        <HoverCard>
-                          <HoverCardTrigger asChild>
-                            <div>
-                              {dia.showName && (
-                                <div className="text-[13px] text-muted-foreground truncate w-full px-1 mb-2 text-center">
-                                  {dia.showName}
-                                </div>
-                              )}
-                              <div className="grid grid-cols-2 gap-1 justify-items-center">
-                                {comics.slice(0, 4).map((comic) => (
-                                  <Avatar key={comic.id} className="w-12 h-12 border border-border">
-                                    <AvatarImage src={comic.picUrl || undefined} alt={comic.name} />
-                                    <AvatarFallback className="text-xs">
-                                      {comic.name.split(' ').map(n => n[0]).join('')}
-                                    </AvatarFallback>
-                                  </Avatar>
-                                ))}
-                                {comics.length > 4 && (
-                                  <div className="col-span-2 mt-1 text-center">
-                                    <div className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-muted text-[11px] font-medium">
-                                      +{comics.length - 4}
+                        <div className="space-y-2">
+                          {showsOnDate.map((show) => (
+                            <div 
+                              key={show.id} 
+                              className="border border-border rounded-md p-2 cursor-pointer hover:bg-muted/50 transition-colors"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedDate(date);
+                                handleShowSelect(show);
+                              }}
+                            >
+                              <HoverCard>
+                                <HoverCardTrigger asChild>
+                                  <div>
+                                    <div className="flex items-center justify-between">
+                                      {show.showName && (
+                                        <div className="text-[13px] text-muted-foreground truncate w-full px-1 mb-1">
+                                          {show.showName}
+                                        </div>
+                                      )}
+                                      {show.startTime && (
+                                        <Badge variant="outline" className="text-[10px] h-5">
+                                          {show.startTime}
+                                        </Badge>
+                                      )}
                                     </div>
+                                    
+                                    {eventComics[dateStr]?.[show.id] && (
+                                      <div className="grid grid-cols-2 gap-1 justify-items-center mt-1">
+                                        {eventComics[dateStr][show.id].slice(0, 4).map((comic) => (
+                                          <Avatar key={comic.id} className="w-8 h-8 border border-border">
+                                            <AvatarImage src={comic.picUrl || undefined} alt={comic.name} />
+                                            <AvatarFallback className="text-xs">
+                                              {comic.name.split(' ').map((n) => n[0]).join('')}
+                                            </AvatarFallback>
+                                          </Avatar>
+                                        ))}
+                                        {eventComics[dateStr][show.id].length > 4 && (
+                                          <div className="col-span-2 mt-1 text-center">
+                                            <div className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-muted text-[11px] font-medium">
+                                              +{eventComics[dateStr][show.id].length - 4}
+                                            </div>
+                                          </div>
+                                        )}
+                                      </div>
+                                    )}
                                   </div>
-                                )}
-                              </div>
-                            </div>
-                          </HoverCardTrigger>
-                          <HoverCardContent className="w-64 p-2" side="right">
-                            <div className="space-y-2">
-                              <div className="font-medium">{formatDate(date.toISOString())}</div>
-                              {dia.showName && (
-                                <div className="text-sm font-medium">{dia.showName}</div>
-                              )}
-                              <div className="text-sm text-muted-foreground">
-                                {comics.length} {comics.length === 1 ? 'comic' : 'comics'}
-                              </div>
-                              <div className="space-y-1">
-                                {comics.map((comic) => (
-                                  <div key={comic.id} className="flex items-center gap-2">
-                                    <Avatar className="w-6 h-6">
-                                      <AvatarImage src={comic.picUrl || undefined} alt={comic.name} />
-                                      <AvatarFallback className="text-[10px]">
-                                        {comic.name.split(' ').map(n => n[0]).join('')}
-                                      </AvatarFallback>
-                                    </Avatar>
-                                    <div className="text-sm">{comic.name}</div>
+                                </HoverCardTrigger>
+                                <HoverCardContent className="w-64 p-2" side="right">
+                                  <div className="space-y-2">
+                                    <div className="font-medium">{formatDate(date.toISOString())}</div>
+                                    {show.showName && (
+                                      <div className="text-sm font-medium">{show.showName}</div>
+                                    )}
+                                    {show.startTime && (
+                                      <div className="text-sm text-muted-foreground">
+                                        Start time: {show.startTime}
+                                      </div>
+                                    )}
+                                    {eventComics[dateStr]?.[show.id] && (
+                                      <div className="text-sm text-muted-foreground">
+                                        {eventComics[dateStr][show.id].length} {eventComics[dateStr][show.id].length === 1 ? 'comic' : 'comics'}
+                                      </div>
+                                    )}
+                                    {eventComics[dateStr]?.[show.id] && (
+                                      <div className="space-y-1">
+                                        {eventComics[dateStr][show.id].map((comic) => (
+                                          <div key={comic.id} className="flex items-center gap-2">
+                                            <Avatar className="w-6 h-6">
+                                              <AvatarImage src={comic.picUrl || undefined} alt={comic.name} />
+                                              <AvatarFallback className="text-[10px]">
+                                                {comic.name.split(' ').map((n) => n[0]).join('')}
+                                              </AvatarFallback>
+                                            </Avatar>
+                                            <div className="text-sm">{comic.name}</div>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    )}
                                   </div>
-                                ))}
-                              </div>
+                                </HoverCardContent>
+                              </HoverCard>
                             </div>
-                          </HoverCardContent>
-                        </HoverCard>
+                          ))}
+                          
+                          {/* Add new show button */}
+                          <div 
+                            className="mt-2 text-center cursor-pointer text-[12px] text-muted-foreground hover:text-foreground transition-colors"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedDate(date);
+                              setSelectedShow(undefined);
+                              setIsEditing(true);
+                            }}
+                          >
+                            + Add show
+                          </div>
+                        </div>
                       )}
                     </div>
                   );
@@ -193,49 +256,72 @@ export default function CalendarPage() {
         </Card>
 
         <div className="space-y-4">
-          <h2 className="text-xl font-semibold">Próximos Shows</h2>
-          {dias
-            .filter(({ dia }) => {
-              const [year, month, day] = dia.date.split('T')[0].split('-').map(Number);
+          <h2 className="text-xl font-semibold">Upcoming Shows</h2>
+          {shows
+            .filter(({ show }) => {
+              const [year, month, day] = show.date.split('T')[0].split('-').map(Number);
               const date = new Date(year, month - 1, day);
               const today = new Date();
               today.setHours(0, 0, 0, 0);
               return date >= today;
             })
             .sort((a, b) => {
-              const [yearA, monthA, dayA] = a.dia.date.split('T')[0].split('-').map(Number);
-              const [yearB, monthB, dayB] = b.dia.date.split('T')[0].split('-').map(Number);
-              return new Date(yearA, monthA - 1, dayA).getTime() - new Date(yearB, monthB - 1, dayB).getTime();
+              const [yearA, monthA, dayA] = a.show.date.split('T')[0].split('-').map(Number);
+              const [yearB, monthB, dayB] = b.show.date.split('T')[0].split('-').map(Number);
+              const dateA = new Date(yearA, monthA - 1, dayA);
+              const dateB = new Date(yearB, monthB - 1, dayB);
+              
+              // First sort by date
+              const dateDiff = dateA.getTime() - dateB.getTime();
+              if (dateDiff !== 0) return dateDiff;
+              
+              // If same date, sort by start time
+              if (a.show.startTime && b.show.startTime) {
+                return a.show.startTime.localeCompare(b.show.startTime);
+              } else if (a.show.startTime) {
+                return -1;
+              } else if (b.show.startTime) {
+                return 1;
+              }
+              
+              return 0;
             })
-            .map(({ dia, comics }) => (
+            .map(({ show, comics }) => (
               <Card 
-                key={dia.id} 
+                key={show.id} 
                 className="cursor-pointer hover:shadow-md transition-shadow"
                 onClick={() => {
-                  const [year, month, day] = dia.date.split('T')[0].split('-').map(Number);
+                  const [year, month, day] = show.date.split('T')[0].split('-').map(Number);
                   const date = new Date(year, month - 1, day);
                   setSelectedDate(date);
-                  setSelectedDia({
-                    ...dia,
+                  setSelectedShow({
+                    ...show,
                     date,
-                    ticketsRevenue: Number(dia.ticketsRevenue),
-                    barRevenue: Number(dia.barRevenue),
+                    ticketsRevenue: Number(show.ticketsRevenue),
+                    barRevenue: Number(show.barRevenue),
                   });
                   setIsEditing(false);
                 }}
               >
                 <CardContent className="pt-6">
                   <div className="font-medium">
-                    {formatDate(dia.date.split('T')[0])}
+                    {formatDate(show.date.split('T')[0])}
                   </div>
-                  {dia.showName && (
-                    <div className="text-sm text-muted-foreground mt-1">
-                      {dia.showName}
-                    </div>
-                  )}
+                  <div className="flex items-center justify-between mt-1">
+                    {show.showName && (
+                      <div className="text-sm text-muted-foreground">
+                        {show.showName}
+                      </div>
+                    )}
+                    {show.startTime && (
+                      <Badge variant="outline" className="text-xs">
+                        {show.startTime}
+                      </Badge>
+                    )}
+                  </div>
                   {comics && comics.length > 0 && (
                     <div className="text-sm text-muted-foreground mt-1">
-                      Com: {comics.map(c => c.name).join(", ")}
+                      With: {comics.map((c) => c.name).join(", ")}
                     </div>
                   )}
                 </CardContent>
@@ -246,11 +332,11 @@ export default function CalendarPage() {
 
       {/* Show the appropriate dialog based on whether we're creating, viewing, or editing */}
       {selectedDate && (
-        selectedDia && !isEditing ? (
-          <ViewDiaDialog
-            isOpen={true}
-            dia={selectedDia}
-            comics={eventComics[selectedDate.toISOString().split('T')[0]] || []}
+        selectedShow && !isEditing ? (
+          <ViewShowDialog
+            selectedDate={selectedDate}
+            show={selectedShow}
+            comics={selectedShow ? eventComics[selectedDate.toISOString().split('T')[0]]?.[selectedShow.id] || [] : []}
             onClose={handleDialogClose}
             onEdit={handleEdit}
             onDelete={handleDelete}
@@ -258,20 +344,21 @@ export default function CalendarPage() {
         ) : (
           <CalendarDialog
             selectedDate={selectedDate}
-            dia={selectedDia}
-            comics={eventComics[selectedDate.toISOString().split('T')[0]] || []}
+            show={selectedShow}
+            comics={selectedShow ? eventComics[selectedDate.toISOString().split('T')[0]]?.[selectedShow.id] || [] : []}
             onClose={handleDialogClose}
           />
         )
       )}
 
-      {/* Preview dialog */}
-      <CalendarPreviewDialog
-        isOpen={isPreviewOpen}
-        onClose={() => setIsPreviewOpen(false)}
-        eventDates={eventDates}
-        eventComics={eventComics}
-      />
+      {isPreviewOpen && (
+        <CalendarPreviewDialog
+          isOpen={isPreviewOpen}
+          onClose={() => setIsPreviewOpen(false)}
+          eventDates={eventDates}
+          eventComics={eventComics}
+        />
+      )}
     </div>
   );
 }

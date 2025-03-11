@@ -1,5 +1,5 @@
 import { relations } from 'drizzle-orm';
-import { pgTable, text, timestamp, uuid, serial, integer, date, numeric, pgEnum, primaryKey, decimal } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, uuid, serial, integer, date, numeric, pgEnum, primaryKey, decimal, time } from 'drizzle-orm/pg-core';
 
 export const usersTable = pgTable('users_table', {
     id: text('id').primaryKey(),
@@ -30,10 +30,11 @@ export type SelectSession = typeof sessionTable.$inferSelect;
 // Enum for comic class
 export const comicClassEnum = pgEnum('comic_class', ['A', 'B', 'C', 'S']);
 
-// Dias (Days/Shows) table
-export const diasTable = pgTable('dias', {
+// Shows table (renamed from diasTable)
+export const showsTable = pgTable('shows', {
     id: serial('id').primaryKey(),
     date: date('date').notNull(),
+    startTime: time('start_time'), // New field to differentiate shows on the same date
     showName: text('show_name'),
     ticketsSold: integer('tickets_sold'),
     ticketsRevenue: decimal('tickets_revenue', { precision: 10, scale: 2 }),
@@ -41,8 +42,8 @@ export const diasTable = pgTable('dias', {
     showQuality: text('show_quality'),
 });
 
-export type InsertDia = typeof diasTable.$inferInsert;
-export type SelectDia = typeof diasTable.$inferSelect;
+export type InsertShow = typeof showsTable.$inferInsert;
+export type SelectShow = typeof showsTable.$inferSelect;
 
 // Comics table
 export const comicsTable = pgTable('comics', {
@@ -73,35 +74,35 @@ export const consumiveisTable = pgTable('consumiveis', {
 export type InsertConsumivel = typeof consumiveisTable.$inferInsert;
 export type SelectConsumivel = typeof consumiveisTable.$inferSelect;
 
-// Junction table for Comics and Dias
-export const comicsDiasTable = pgTable('comics_dias', {
+// Junction table for Comics and Shows
+export const comicsShowsTable = pgTable('comics_shows', {
     comicId: uuid('comic_id').notNull().references(() => comicsTable.id, { onDelete: 'cascade' }),
-    diaId: integer('dia_id').notNull().references(() => diasTable.id, { onDelete: 'cascade' }),
+    showId: integer('show_id').notNull().references(() => showsTable.id, { onDelete: 'cascade' }),
 }, (table) => {
     return {
-        pk: primaryKey({ columns: [table.comicId, table.diaId] }),
+        pk: primaryKey({ columns: [table.comicId, table.showId] }),
     };
 });
 
-export type InsertComicDia = typeof comicsDiasTable.$inferInsert;
-export type SelectComicDia = typeof comicsDiasTable.$inferSelect;
+export type InsertComicShow = typeof comicsShowsTable.$inferInsert;
+export type SelectComicShow = typeof comicsShowsTable.$inferSelect;
 
 // Relations
-export const diasRelations = relations(diasTable, ({ many }) => ({
-    comicsDias: many(comicsDiasTable),
+export const showsRelations = relations(showsTable, ({ many }) => ({
+    comicsShows: many(comicsShowsTable),
 }));
 
 export const comicsRelations = relations(comicsTable, ({ many }) => ({
-    comicsDias: many(comicsDiasTable),
+    comicsShows: many(comicsShowsTable),
 }));
 
-export const comicsDiasRelations = relations(comicsDiasTable, ({ one }) => ({
+export const comicsShowsRelations = relations(comicsShowsTable, ({ one }) => ({
     comic: one(comicsTable, {
-        fields: [comicsDiasTable.comicId],
+        fields: [comicsShowsTable.comicId],
         references: [comicsTable.id],
     }),
-    dia: one(diasTable, {
-        fields: [comicsDiasTable.diaId],
-        references: [diasTable.id],
+    show: one(showsTable, {
+        fields: [comicsShowsTable.showId],
+        references: [showsTable.id],
     }),
 }));

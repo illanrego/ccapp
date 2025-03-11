@@ -15,15 +15,16 @@ import { SelectComic } from "@/db/schema";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { X } from "lucide-react";
-import { addDia } from "../actions/add-dia.action";
-import { updateDia } from "../actions/update-dia.action";
+import { addShow } from "../actions/add-dia.action";
+import { updateShow } from "../actions/update-dia.action";
 import { ComicSearch } from "./comic-search";
 
 interface CalendarDialogProps {
   selectedDate?: Date;
-  dia?: {
+  show?: {
     id: number;
     date: Date;
+    startTime?: string | null;
     showName?: string | null;
     ticketsSold?: number | null;
     ticketsRevenue?: number | null;
@@ -47,7 +48,7 @@ const weekDays = {
 
 export function CalendarDialog({
   selectedDate,
-  dia,
+  show,
   comics = [],
   onClose,
 }: CalendarDialogProps) {
@@ -80,14 +81,14 @@ export function CalendarDialog({
       formData.set('comicIds', JSON.stringify(selectedComics.map(c => c.id)));
 
       let result;
-      if (dia) {
-        result = await updateDia(dia.id, formData);
+      if (show) {
+        result = await updateShow(show.id, formData);
       } else {
-        result = await addDia(formData);
+        result = await addShow(formData);
       }
 
       if (!result.success) {
-        console.error("Failed to save dia:", result.error);
+        console.error("Failed to save show:", result.error);
         // You could add a toast notification here
         return;
       }
@@ -95,7 +96,7 @@ export function CalendarDialog({
       router.refresh();
       onClose?.();
     } catch (error) {
-      console.error("Failed to save dia:", error);
+      console.error("Failed to save show:", error);
       // You could add a toast notification here
     } finally {
       setIsLoading(false);
@@ -107,7 +108,7 @@ export function CalendarDialog({
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>
-            {dia ? "Edit Show Details" : "Add New Show"}
+            {show ? "Edit Show Details" : "Add New Show"}
           </DialogTitle>
           <DialogDescription className="text-xl font-medium">
             {selectedDate && formatDateBR(selectedDate)}
@@ -122,7 +123,19 @@ export function CalendarDialog({
               <Input
                 id="showName"
                 name="showName"
-                defaultValue={dia?.showName || ""}
+                defaultValue={show?.showName || ""}
+                className="col-span-3"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="startTime" className="text-right">
+                Start Time
+              </Label>
+              <Input
+                id="startTime"
+                name="startTime"
+                type="time"
+                defaultValue={show?.startTime || ""}
                 className="col-span-3"
               />
             </div>
@@ -156,7 +169,7 @@ export function CalendarDialog({
                 id="ticketsSold"
                 name="ticketsSold"
                 type="number"
-                defaultValue={dia?.ticketsSold || ""}
+                defaultValue={show?.ticketsSold || ""}
                 className="col-span-3"
               />
             </div>
@@ -169,7 +182,7 @@ export function CalendarDialog({
                 name="ticketsRevenue"
                 type="number"
                 step="0.01"
-                defaultValue={dia?.ticketsRevenue || ""}
+                defaultValue={show?.ticketsRevenue || ""}
                 className="col-span-3"
               />
             </div>
@@ -182,7 +195,7 @@ export function CalendarDialog({
                 name="barRevenue"
                 type="number"
                 step="0.01"
-                defaultValue={dia?.barRevenue || ""}
+                defaultValue={show?.barRevenue || ""}
                 className="col-span-3"
               />
             </div>
@@ -193,7 +206,7 @@ export function CalendarDialog({
               <Input
                 id="showQuality"
                 name="showQuality"
-                defaultValue={dia?.showQuality || ""}
+                defaultValue={show?.showQuality || ""}
                 className="col-span-3"
               />
             </div>
@@ -203,7 +216,7 @@ export function CalendarDialog({
               Cancel
             </Button>
             <Button type="submit" disabled={isLoading}>
-              {dia ? "Update" : "Create"}
+              {show ? "Update" : "Create"}
             </Button>
           </DialogFooter>
         </form>

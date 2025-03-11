@@ -42,9 +42,4 @@ export async function addShowService(show: Omit<InsertShow, 'id'>, comicIds: str
         show: newShow,
         comics
     };
-}
-
-// Keep the old function for backward compatibility
-export async function addDiaService(dia: any, comicIds: string[]) {
-    return addShowService(dia, comicIds);
 } 

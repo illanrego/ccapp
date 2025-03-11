@@ -1,11 +1,11 @@
 'use server'
 
 import { getUser } from "@/lib/auth";
-import { updateDiaService } from "../services/update-dia.service";
+import { updateShowService } from "../services/update-show.service";
 import { revalidatePath } from "next/cache";
-import { InsertDia } from "@/db/schema";
+import { InsertShow } from "@/db/schema";
 
-export async function updateDia(id: number, formData: FormData) {
+export async function updateShow(id: number, formData: FormData) {
     try {
         const { user } = await getUser();
         if (!user) {
@@ -13,6 +13,7 @@ export async function updateDia(id: number, formData: FormData) {
         }
 
         const date = formData.get('date') as string;
+        const startTime = formData.get('startTime') as string;
         const showName = formData.get('showName') as string;
         const ticketsSold = formData.get('ticketsSold') ? parseInt(formData.get('ticketsSold') as string) : null;
         const ticketsRevenue = formData.get('ticketsRevenue') ? parseFloat(formData.get('ticketsRevenue') as string) : null;
@@ -24,9 +25,10 @@ export async function updateDia(id: number, formData: FormData) {
             throw new Error('Date is required');
         }
 
-        // Create the dia object with the correct types
-        const diaData: Omit<InsertDia, 'id'> = {
+        // Create the show object with the correct types
+        const showData: Omit<InsertShow, 'id'> = {
             date,
+            startTime: startTime || null,
             showName: showName || null,
             ticketsSold,
             ticketsRevenue: ticketsRevenue as any, // Using any as a workaround for the type mismatch
@@ -34,7 +36,7 @@ export async function updateDia(id: number, formData: FormData) {
             showQuality: showQuality || null,
         };
 
-        const result = await updateDiaService(id, diaData, comicIds);
+        const result = await updateShowService(id, showData, comicIds);
 
         // Revalidate both the calendar page and the main page
         revalidatePath('/calendar');
@@ -42,10 +44,15 @@ export async function updateDia(id: number, formData: FormData) {
         
         return { success: true, data: result };
     } catch (error) {
-        console.error('Error updating dia:', error);
+        console.error('Error updating show:', error);
         return { 
             success: false, 
-            error: error instanceof Error ? error.message : 'Failed to update dia' 
+            error: error instanceof Error ? error.message : 'Failed to update show' 
         };
     }
+}
+
+// Keep the old function for backward compatibility
+export async function updateDia(id: number, formData: FormData) {
+    return updateShow(id, formData);
 } 
