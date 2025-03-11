@@ -15,6 +15,7 @@ export async function addShowService(show: Omit<InsertShow, 'id'>, comicIds: str
         ticketsRevenue: show.ticketsRevenue,
         barRevenue: show.barRevenue,
         showQuality: show.showQuality,
+        isFiftyFifty: show.isFiftyFifty,
     }).returning();
 
     // Then create the comic relationships if any comics were provided

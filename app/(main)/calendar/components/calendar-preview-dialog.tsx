@@ -22,6 +22,7 @@ interface ShowWithDateObject {
   ticketsRevenue?: number | null;
   barRevenue?: number | null;
   showQuality?: string | null;
+  isFiftyFifty?: boolean | null;
 }
 
 interface CalendarPreviewDialogProps {

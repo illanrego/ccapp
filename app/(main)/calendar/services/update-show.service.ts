@@ -16,6 +16,7 @@ export async function updateShowService(id: number, show: Omit<InsertShow, 'id'>
             ticketsRevenue: show.ticketsRevenue,
             barRevenue: show.barRevenue,
             showQuality: show.showQuality,
+            isFiftyFifty: show.isFiftyFifty,
         })
         .where(eq(showsTable.id, id))
         .returning();

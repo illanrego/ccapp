@@ -5,8 +5,18 @@ import { showsTable, comicsTable, comicsShowsTable } from "@/db/schema";
 import { eq } from "drizzle-orm";
 
 export async function getShows() {
-  // First, get all shows
-  const shows = await db.select().from(showsTable);
+  // First, get all shows with all fields
+  const shows = await db.select({
+    id: showsTable.id,
+    date: showsTable.date,
+    startTime: showsTable.startTime,
+    showName: showsTable.showName,
+    ticketsSold: showsTable.ticketsSold,
+    ticketsRevenue: showsTable.ticketsRevenue,
+    barRevenue: showsTable.barRevenue,
+    showQuality: showsTable.showQuality,
+    isFiftyFifty: showsTable.isFiftyFifty,
+  }).from(showsTable);
   
   // Then for each show, get the associated comics
   const result = await Promise.all(
