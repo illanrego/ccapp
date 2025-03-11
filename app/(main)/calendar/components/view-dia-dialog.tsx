@@ -112,13 +112,9 @@ export function ViewShowDialog({
       <DialogContent className="sm:max-w-[550px] p-0 overflow-hidden">
         <div className="bg-primary/10 p-6">
           <DialogHeader className="mb-2">
-            <div className="flex items-center gap-2">
-              <Calendar className="h-5 w-5 text-primary" />
-              <DialogTitle className="text-xl">Show Details</DialogTitle>
-            </div>
-            <DialogDescription className="text-2xl font-bold mt-2">
+            <DialogTitle className="text-2xl font-bold mt-2">
               {show.showName || "Untitled Show"}
-            </DialogDescription>
+            </DialogTitle>
             <div className="flex items-center gap-2 mt-1 text-muted-foreground">
               <Calendar className="h-4 w-4" />
               <span>{formatDate(selectedDate?.toISOString() || '')}</span>

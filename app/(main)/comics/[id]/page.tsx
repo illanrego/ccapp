@@ -1,12 +1,12 @@
 import { notFound } from "next/navigation";
-import { getComicWithDias } from "../actions/get-comic.action";
+import { getComicWithShows } from "../actions/get-comic.action";
 import { ArrowLeft, Calendar, MapPin, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDate } from "@/lib/utils";
-import { SelectDia } from "@/db/schema";
+import { SelectShow } from "@/db/schema";
 
 interface ComicPageProps {
   params: {
@@ -14,15 +14,15 @@ interface ComicPageProps {
   };
 }
 
-interface DiaWithComicDia extends SelectDia {
-  comicDia: {
+interface ShowWithComicShow extends SelectShow {
+  comicShow: {
     comicId: string;
-    diaId: number;
+    showId: number;
   };
 }
 
 export default async function ComicPage({ params }: ComicPageProps) {
-  const comic = await getComicWithDias(params.id);
+  const comic = await getComicWithShows(params.id);
 
   if (!comic) {
     notFound();
@@ -87,23 +87,27 @@ export default async function ComicPage({ params }: ComicPageProps) {
               </div>
             </div>
 
-            {/* Dias Section */}
+            {/* Shows Section */}
             <div className="mt-8">
               <h2 className="text-2xl font-bold mb-4">Histórico de Shows</h2>
-              {comic.dias && comic.dias.length > 0 ? (
+              {comic.shows && comic.shows.length > 0 ? (
                 <div className="space-y-4">
-                  {comic.dias.map((dia: DiaWithComicDia) => (
-                    <Card key={dia.id}>
+                  {comic.shows.map((show: ShowWithComicShow) => (
+                    <Card key={show.id}>
                       <CardHeader className="pb-2">
                         <CardTitle className="text-lg">
-                          {formatDate(dia.date)}
+                          {formatDate(show.date)}
+                          {show.startTime && ` - ${show.startTime}`}
                         </CardTitle>
                       </CardHeader>
                       <CardContent>
                         <div className="text-sm text-muted-foreground">
-                          {dia.showName && <p>Show: {dia.showName}</p>}
-                          {dia.ticketsSold && <p>Ingressos Vendidos: {dia.ticketsSold}</p>}
-                          {dia.showQuality && <p>Show Quality: {dia.showQuality}</p>}
+                          {show.showName && <p>Show: {show.showName}</p>}
+                          {show.ticketsSold && <p>Ingressos Vendidos: {show.ticketsSold}</p>}
+                          {show.ticketsRevenue && <p>Receita de Ingressos: R$ {Number(show.ticketsRevenue).toFixed(2)}</p>}
+                          {show.barRevenue && <p>Receita de Bar: R$ {Number(show.barRevenue).toFixed(2)}</p>}
+                          {show.showQuality && <p>Qualidade do Show: {show.showQuality}</p>}
+                          {show.isFiftyFifty !== undefined && <p>Divisão 50/50: {show.isFiftyFifty ? 'Sim' : 'Não'}</p>}
                         </div>
                       </CardContent>
                     </Card>

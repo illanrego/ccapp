@@ -1,12 +1,12 @@
 import { db } from "@/db";
-import { comicsTable, diasTable, comicsDiasTable, SelectComic, SelectDia } from "@/db/schema";
+import { comicsTable, showsTable, comicsShowsTable, SelectComic, SelectShow } from "@/db/schema";
 import { eq, desc } from "drizzle-orm";
 
-export type ComicWithDias = SelectComic & {
-    dias?: (SelectDia & { comicDia: { comicId: string; diaId: number } })[];
+export type ComicWithShows = SelectComic & {
+    shows?: (SelectShow & { comicShow: { comicId: string; showId: number } })[];
 };
 
-export async function getComicWithDiasService(id: string): Promise<ComicWithDias | null> {
+export async function getComicWithShowsService(id: string): Promise<ComicWithShows | null> {
     // First get the comic
     const comic = await db.query.comicsTable.findFirst({
         where: eq(comicsTable.id, id),
@@ -16,23 +16,23 @@ export async function getComicWithDiasService(id: string): Promise<ComicWithDias
         return null;
     }
 
-    // Then get the dias related to this comic
-    const dias = await db
+    // Then get the shows related to this comic
+    const shows = await db
         .select({
-            dia: diasTable,
-            comicDia: comicsDiasTable,
+            show: showsTable,
+            comicShow: comicsShowsTable,
         })
-        .from(diasTable)
-        .innerJoin(comicsDiasTable, eq(diasTable.id, comicsDiasTable.diaId))
-        .where(eq(comicsDiasTable.comicId, id))
-        .orderBy(desc(diasTable.date));
+        .from(showsTable)
+        .innerJoin(comicsShowsTable, eq(showsTable.id, comicsShowsTable.showId))
+        .where(eq(comicsShowsTable.comicId, id))
+        .orderBy(desc(showsTable.date));
 
     // Transform the result to the expected format
     return {
         ...comic,
-        dias: dias.map(({ dia, comicDia }) => ({
-            ...dia,
-            comicDia,
+        shows: shows.map(({ show, comicShow }) => ({
+            ...show,
+            comicShow,
         })),
     };
 } 

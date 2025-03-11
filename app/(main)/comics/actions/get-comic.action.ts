@@ -1,16 +1,16 @@
 'use server'
 
 import { getUser } from "@/lib/auth";
-import { getComicWithDiasService } from "../services/get-comic.service";
+import { getComicWithShowsService } from "../services/get-comic.service";
 
-export async function getComicWithDias(id: string) {
+export async function getComicWithShows(id: string) {
     const { user } = await getUser();
     if (!user) {
         throw new Error('Unauthorized');
     }
 
     try {
-        return await getComicWithDiasService(id);
+        return await getComicWithShowsService(id);
     } catch (error) {
         console.error('Error fetching comic:', error);
         throw new Error('Failed to fetch comic');
