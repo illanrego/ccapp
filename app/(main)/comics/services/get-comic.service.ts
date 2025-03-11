@@ -3,7 +3,7 @@ import { comicsTable, showsTable, comicsShowsTable, SelectComic, SelectShow } fr
 import { eq, desc } from "drizzle-orm";
 
 export type ComicWithShows = SelectComic & {
-    shows?: (SelectShow & { comicShow: { comicId: string; showId: number } })[];
+    shows?: (SelectShow & { comicShow: { comicId: string; showId: number; position?: string | null } })[];
 };
 
 export async function getComicWithShowsService(id: string): Promise<ComicWithShows | null> {

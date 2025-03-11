@@ -24,12 +24,16 @@ export async function getShows() {
       const comicRelations = await db
         .select({
           comic: comicsTable,
+          comicShow: comicsShowsTable,
         })
         .from(comicsShowsTable)
         .innerJoin(comicsTable, eq(comicsShowsTable.comicId, comicsTable.id))
         .where(eq(comicsShowsTable.showId, show.id));
       
-      const comics = comicRelations.map(relation => relation.comic);
+      const comics = comicRelations.map(relation => ({
+        ...relation.comic,
+        comicShow: relation.comicShow,
+      }));
       
       return {
         show,

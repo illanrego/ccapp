@@ -5,6 +5,11 @@ import { updateShowService } from "../services/update-show.service";
 import { revalidatePath } from "next/cache";
 import { InsertShow } from "@/db/schema";
 
+interface ComicWithPosition {
+    id: string;
+    position: string | null;
+}
+
 export async function updateShow(id: number, formData: FormData) {
     try {
         const { user } = await getUser();
@@ -19,7 +24,7 @@ export async function updateShow(id: number, formData: FormData) {
         const ticketsRevenue = formData.get('ticketsRevenue') ? parseFloat(formData.get('ticketsRevenue') as string) : null;
         const barRevenue = formData.get('barRevenue') ? parseFloat(formData.get('barRevenue') as string) : null;
         const showQuality = formData.get('showQuality') as string;
-        const comicIds = JSON.parse(formData.get('comicIds') as string || '[]') as string[];
+        const comicsWithPositions = JSON.parse(formData.get('comicIds') as string || '[]') as ComicWithPosition[];
         const isFiftyFifty = formData.get('isFiftyFifty') === 'true';
 
         if (!date) {
@@ -38,7 +43,7 @@ export async function updateShow(id: number, formData: FormData) {
             isFiftyFifty,
         };
 
-        const result = await updateShowService(id, showData, comicIds);
+        const result = await updateShowService(id, showData, comicsWithPositions);
 
         // Revalidate both the calendar page and the main page
         revalidatePath('/calendar');

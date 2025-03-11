@@ -18,6 +18,7 @@ interface ShowWithComicShow extends SelectShow {
   comicShow: {
     comicId: string;
     showId: number;
+    position?: string | null;
   };
 }
 
@@ -27,6 +28,25 @@ export default async function ComicPage({ params }: ComicPageProps) {
   if (!comic) {
     notFound();
   }
+
+  const getPositionColor = (position: string | null | undefined) => {
+    if (!position) return "";
+    
+    switch (position) {
+      case "Headliner":
+        return "bg-purple-100 text-purple-800";
+      case "Opening Act":
+        return "bg-blue-100 text-blue-800";
+      case "Middle":
+        return "bg-green-100 text-green-800";
+      case "MC":
+        return "bg-amber-100 text-amber-800";
+      case "Casting":
+        return "bg-red-100 text-red-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
+  };
 
   return (
     <div className="container py-8">
@@ -95,10 +115,17 @@ export default async function ComicPage({ params }: ComicPageProps) {
                   {comic.shows.map((show: ShowWithComicShow) => (
                     <Card key={show.id}>
                       <CardHeader className="pb-2">
-                        <CardTitle className="text-lg">
-                          {formatDate(show.date)}
-                          {show.startTime && ` - ${show.startTime}`}
-                        </CardTitle>
+                        <div className="flex items-center justify-between">
+                          <CardTitle className="text-lg">
+                            {formatDate(show.date)}
+                            {show.startTime && ` - ${show.startTime}`}
+                          </CardTitle>
+                          {show.comicShow?.position && (
+                            <Badge className={`${getPositionColor(show.comicShow.position)}`}>
+                              {show.comicShow.position}
+                            </Badge>
+                          )}
+                        </div>
                       </CardHeader>
                       <CardContent>
                         <div className="text-sm text-muted-foreground">

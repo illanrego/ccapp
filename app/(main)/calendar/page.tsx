@@ -71,7 +71,7 @@ export default function CalendarPage() {
     
     acc[dateStr][show.id] = comics || [];
     return acc;
-  }, {} as Record<string, Record<number, SelectComic[]>>);
+  }, {} as Record<string, Record<number, (SelectComic & { comicShow?: { comicId: string; showId: number; position?: string | null } })[]>>);
 
   const handleDateSelect = (date: Date | undefined) => {
     setSelectedDate(date);

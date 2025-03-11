@@ -29,8 +29,27 @@ interface CalendarPreviewDialogProps {
   isOpen: boolean;
   onClose: () => void;
   eventDates?: Record<string, ShowWithDateObject[]>;
-  eventComics?: Record<string, Record<number, SelectComic[]>>;
+  eventComics?: Record<string, Record<number, (SelectComic & { comicShow?: { comicId: string; showId: number; position?: string | null } })[]>>;
 }
+
+const getPositionColor = (position: string | null | undefined) => {
+  if (!position) return "";
+  
+  switch (position) {
+    case "Headliner":
+      return "bg-purple-100 text-purple-800";
+    case "Opening Act":
+      return "bg-blue-100 text-blue-800";
+    case "Middle":
+      return "bg-green-100 text-green-800";
+    case "MC":
+      return "bg-amber-100 text-amber-800";
+    case "Casting":
+      return "bg-red-100 text-red-800";
+    default:
+      return "bg-gray-100 text-gray-800";
+  }
+};
 
 export function CalendarPreviewDialog({
   isOpen,
@@ -131,7 +150,12 @@ export function CalendarPreviewDialog({
                                             {comic.name.split(' ').map((n) => n[0]).join('')}
                                           </AvatarFallback>
                                         </Avatar>
-                                        <div className="text-sm">{comic.name}</div>
+                                        <div className="flex-1 text-sm">{comic.name}</div>
+                                        {comic.comicShow?.position && (
+                                          <Badge className={`text-xs ${getPositionColor(comic.comicShow.position)}`}>
+                                            {comic.comicShow.position}
+                                          </Badge>
+                                        )}
                                       </div>
                                     ))}
                                   </div>

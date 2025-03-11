@@ -79,6 +79,7 @@ export type SelectConsumivel = typeof consumiveisTable.$inferSelect;
 export const comicsShowsTable = pgTable('comics_shows', {
     comicId: uuid('comic_id').notNull().references(() => comicsTable.id, { onDelete: 'cascade' }),
     showId: integer('show_id').notNull().references(() => showsTable.id, { onDelete: 'cascade' }),
+    position: text('position'), // New field to track the comic's position in the lineup (headliner, opening act, middle, mc, etc.)
 }, (table) => {
     return {
         pk: primaryKey({ columns: [table.comicId, table.showId] }),

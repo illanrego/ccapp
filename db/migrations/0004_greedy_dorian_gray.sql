@@ -1,0 +1,1 @@
+ALTER TABLE "comics_shows" ADD COLUMN "position" text;

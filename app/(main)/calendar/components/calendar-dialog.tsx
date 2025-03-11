@@ -19,6 +19,13 @@ import { addShow } from "../actions/add-dia.action";
 import { updateShow } from "../actions/update-dia.action";
 import { ComicSearch } from "./comic-search";
 import { Switch } from "@/components/ui/switch";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface CalendarDialogProps {
   selectedDate?: Date;
@@ -36,6 +43,15 @@ interface CalendarDialogProps {
   comics?: SelectComic[];
   onClose?: () => void;
 }
+
+// Position options for comics in a show
+export const positionOptions = [
+  "Headliner",
+  "Opening Act",
+  "Middle",
+  "MC",
+  "Casting",
+];
 
 // Portuguese weekday names
 const weekDays = {
@@ -56,17 +72,30 @@ export function CalendarDialog({
 }: CalendarDialogProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedComics, setSelectedComics] = useState<SelectComic[]>(comics);
+  const [selectedComics, setSelectedComics] = useState<(SelectComic & { position?: string })[]>(
+    comics.map(comic => ({
+      ...comic,
+      position: comic.comicShow?.position || undefined
+    }))
+  );
   const [isFiftyFifty, setIsFiftyFifty] = useState<boolean>(!!show?.isFiftyFifty);
 
   const handleAddComic = (comic: SelectComic | undefined) => {
     if (comic && !selectedComics.find(c => c.id === comic.id)) {
-      setSelectedComics([...selectedComics, comic]);
+      setSelectedComics([...selectedComics, { ...comic, position: undefined }]);
     }
   };
 
   const handleRemoveComic = (comicId: string) => {
     setSelectedComics(selectedComics.filter(c => c.id !== comicId));
+  };
+
+  const handlePositionChange = (comicId: string, position: string) => {
+    setSelectedComics(
+      selectedComics.map(comic => 
+        comic.id === comicId ? { ...comic, position } : comic
+      )
+    );
   };
 
   const formatDateBR = (date: Date) => {
@@ -81,7 +110,13 @@ export function CalendarDialog({
     try {
       const formData = new FormData(e.currentTarget);
       formData.set('date', selectedDate?.toISOString() || '');
-      formData.set('comicIds', JSON.stringify(selectedComics.map(c => c.id)));
+      
+      // Include comic positions in the data sent to the server
+      const comicsWithPositions = selectedComics.map(c => ({
+        id: c.id,
+        position: c.position || null
+      }));
+      formData.set('comicIds', JSON.stringify(comicsWithPositions));
       formData.set('isFiftyFifty', isFiftyFifty ? 'true' : 'false');
 
       let result;
@@ -149,6 +184,21 @@ export function CalendarDialog({
                 {selectedComics.map((comic) => (
                   <div key={comic.id} className="flex items-center gap-2">
                     <div className="flex-1">{comic.name}</div>
+                    <Select
+                      value={comic.position}
+                      onValueChange={(value) => handlePositionChange(comic.id, value)}
+                    >
+                      <SelectTrigger className="w-[140px]">
+                        <SelectValue placeholder="Position" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {positionOptions.map((position) => (
+                          <SelectItem key={position} value={position}>
+                            {position}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <Button
                       type="button"
                       variant="ghost"

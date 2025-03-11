@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -36,7 +35,7 @@ interface ViewShowDialogProps {
     showQuality?: string | null;
     isFiftyFifty?: boolean | null;
   };
-  comics?: SelectComic[];
+  comics?: (SelectComic & { comicShow?: { comicId: string; showId: number; position?: string | null } })[];
   onClose?: () => void;
   onEdit?: () => void;
   onDelete?: () => void;
@@ -87,6 +86,25 @@ export function ViewShowDialog({
       case "average":
         return "bg-yellow-100 text-yellow-800";
       case "poor":
+        return "bg-red-100 text-red-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
+  };
+
+  const getPositionColor = (position: string | null | undefined) => {
+    if (!position) return "";
+    
+    switch (position) {
+      case "Headliner":
+        return "bg-purple-100 text-purple-800";
+      case "Opening Act":
+        return "bg-blue-100 text-blue-800";
+      case "Middle":
+        return "bg-green-100 text-green-800";
+      case "MC":
+        return "bg-amber-100 text-amber-800";
+      case "Casting":
         return "bg-red-100 text-red-800";
       default:
         return "bg-gray-100 text-gray-800";
@@ -168,10 +186,15 @@ export function ViewShowDialog({
                           {comic.name.split(' ').map(n => n[0]).join('')}
                         </AvatarFallback>
                       </Avatar>
-                      <div>
+                      <div className="flex-1">
                         <div className="font-medium">{comic.name}</div>
                         {comic.city && <div className="text-xs text-muted-foreground">{comic.city}</div>}
                       </div>
+                      {comic.comicShow?.position && (
+                        <Badge className={`${getPositionColor(comic.comicShow.position)}`}>
+                          {comic.comicShow.position}
+                        </Badge>
+                      )}
                     </div>
                   ))}
                 </div>
