@@ -40,7 +40,7 @@ interface CalendarDialogProps {
     showQuality?: string | null;
     isFiftyFifty?: boolean | null;
   };
-  comics?: SelectComic[];
+  comics?: (SelectComic & { comicShow?: { comicId: string; showId: number; position?: string | null } })[];
   onClose?: () => void;
 }
 
@@ -72,7 +72,7 @@ export function CalendarDialog({
 }: CalendarDialogProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedComics, setSelectedComics] = useState<(SelectComic & { position?: string })[]>(
+  const [selectedComics, setSelectedComics] = useState<(SelectComic & { position?: string; comicShow?: { comicId: string; showId: number; position?: string | null } })[]>(
     comics.map(comic => ({
       ...comic,
       position: comic.comicShow?.position || undefined
@@ -154,7 +154,7 @@ export function CalendarDialog({
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
-          <div className="grid gap-4 py-4">
+          <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto pr-2">
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="showName" className="text-right">
                 Show Name
