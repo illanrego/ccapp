@@ -20,6 +20,7 @@ export async function updateShow(id: number, formData: FormData) {
         const barRevenue = formData.get('barRevenue') ? parseFloat(formData.get('barRevenue') as string) : null;
         const showQuality = formData.get('showQuality') as string;
         const comicIds = JSON.parse(formData.get('comicIds') as string || '[]') as string[];
+        const isFiftyFifty = formData.get('isFiftyFifty') === 'true';
 
         if (!date) {
             throw new Error('Date is required');
@@ -34,6 +35,7 @@ export async function updateShow(id: number, formData: FormData) {
             ticketsRevenue: ticketsRevenue as any, // Using any as a workaround for the type mismatch
             barRevenue: barRevenue as any, // Using any as a workaround for the type mismatch
             showQuality: showQuality || null,
+            isFiftyFifty,
         };
 
         const result = await updateShowService(id, showData, comicIds);

@@ -1,5 +1,5 @@
 import { relations } from 'drizzle-orm';
-import { pgTable, text, timestamp, uuid, serial, integer, date, numeric, pgEnum, primaryKey, decimal, time } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, uuid, serial, integer, date, numeric, pgEnum, primaryKey, decimal, time, boolean } from 'drizzle-orm/pg-core';
 
 export const usersTable = pgTable('users_table', {
     id: text('id').primaryKey(),
@@ -40,6 +40,7 @@ export const showsTable = pgTable('shows', {
     ticketsRevenue: decimal('tickets_revenue', { precision: 10, scale: 2 }),
     barRevenue: decimal('bar_revenue', { precision: 10, scale: 2 }),
     showQuality: text('show_quality'),
+    isFiftyFifty: boolean('is_fifty_fifty').default(false), // New field to indicate if revenue is split 50/50
 });
 
 export type InsertShow = typeof showsTable.$inferInsert;

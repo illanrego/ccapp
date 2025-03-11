@@ -14,10 +14,11 @@ import { Label } from "@/components/ui/label";
 import { SelectComic } from "@/db/schema";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { X } from "lucide-react";
+import { X, SplitSquareVertical } from "lucide-react";
 import { addShow } from "../actions/add-dia.action";
 import { updateShow } from "../actions/update-dia.action";
 import { ComicSearch } from "./comic-search";
+import { Switch } from "@/components/ui/switch";
 
 interface CalendarDialogProps {
   selectedDate?: Date;
@@ -30,6 +31,7 @@ interface CalendarDialogProps {
     ticketsRevenue?: number | null;
     barRevenue?: number | null;
     showQuality?: string | null;
+    isFiftyFifty?: boolean | null;
   };
   comics?: SelectComic[];
   onClose?: () => void;
@@ -55,6 +57,7 @@ export function CalendarDialog({
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [selectedComics, setSelectedComics] = useState<SelectComic[]>(comics);
+  const [isFiftyFifty, setIsFiftyFifty] = useState<boolean>(!!show?.isFiftyFifty);
 
   const handleAddComic = (comic: SelectComic | undefined) => {
     if (comic && !selectedComics.find(c => c.id === comic.id)) {
@@ -79,6 +82,7 @@ export function CalendarDialog({
       const formData = new FormData(e.currentTarget);
       formData.set('date', selectedDate?.toISOString() || '');
       formData.set('comicIds', JSON.stringify(selectedComics.map(c => c.id)));
+      formData.set('isFiftyFifty', isFiftyFifty ? 'true' : 'false');
 
       let result;
       if (show) {
@@ -209,6 +213,26 @@ export function CalendarDialog({
                 defaultValue={show?.showQuality || ""}
                 className="col-span-3"
               />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <div className="text-right flex items-center justify-end gap-2">
+                <SplitSquareVertical className="h-4 w-4" />
+                <Label htmlFor="isFiftyFifty" className="cursor-pointer">
+                  50/50 Split
+                </Label>
+              </div>
+              <div className="col-span-3">
+                <Switch
+                  id="isFiftyFifty"
+                  checked={isFiftyFifty}
+                  onCheckedChange={setIsFiftyFifty}
+                />
+                {isFiftyFifty && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Only 50% of ticket revenue will be counted in the total revenue.
+                  </p>
+                )}
+              </div>
             </div>
           </div>
           <DialogFooter>

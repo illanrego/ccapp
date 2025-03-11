@@ -1,0 +1,1 @@
+ALTER TABLE "shows" ADD COLUMN "is_fifty_fifty" boolean DEFAULT false;

@@ -23,6 +23,7 @@ interface ShowWithDateObject {
   ticketsRevenue?: number | null;
   barRevenue?: number | null;
   showQuality?: string | null;
+  isFiftyFifty?: boolean | null;
 }
 
 export default function CalendarPage() {
@@ -162,19 +163,20 @@ export default function CalendarPage() {
                               <HoverCard>
                                 <HoverCardTrigger asChild>
                                   <div>
-                                    <div className="flex items-center justify-between">
+                                    <div className="flex items-center justify-between flex-col">
                                       {show.showName && (
-                                        <div className="text-[13px] text-muted-foreground truncate w-full px-1 mb-1">
-                                          {show.showName}
+                                        <div className="flex flex-col w-full px-1">
+                                          <div className="text-[13px] text-muted-foreground truncate mb-1">
+                                            {show.showName}
+                                          </div>
+                                          {show.startTime && (
+                                            <Badge variant="outline" className="text-[10px] h-5 w-fit">
+                                              {show.startTime} 
+                                            </Badge>
+                                          )}
                                         </div>
                                       )}
-                                      {show.startTime && (
-                                        <Badge variant="outline" className="text-[10px] h-5">
-                                          {show.startTime}
-                                        </Badge>
-                                      )}
                                     </div>
-                                    
                                     {eventComics[dateStr]?.[show.id] && (
                                       <div className="grid grid-cols-2 gap-1 justify-items-center mt-1">
                                         {eventComics[dateStr][show.id].slice(0, 4).map((comic) => (

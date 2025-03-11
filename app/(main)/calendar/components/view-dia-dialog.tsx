@@ -16,10 +16,12 @@ import { deleteShow } from "../actions/delete-dia.action";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Calendar, Clock, DollarSign, Ticket, Users, Star, BarChart } from "lucide-react";
+import { Calendar, Clock, DollarSign, Ticket, Users, Star, BarChart, SplitSquareVertical } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
 interface ViewShowDialogProps {
   selectedDate?: Date;
@@ -32,6 +34,7 @@ interface ViewShowDialogProps {
     ticketsRevenue?: number | null;
     barRevenue?: number | null;
     showQuality?: string | null;
+    isFiftyFifty?: boolean | null;
   };
   comics?: SelectComic[];
   onClose?: () => void;
@@ -90,6 +93,20 @@ export function ViewShowDialog({
     }
   };
 
+  // Calculate total revenue based on 50/50 split if applicable
+  const calculateTotalRevenue = () => {
+    const ticketsRevenue = show.ticketsRevenue || 0;
+    const barRevenue = show.barRevenue || 0;
+    
+    // If 50/50 split is enabled, only count 50% of ticket revenue
+    if (show.isFiftyFifty) {
+      return (ticketsRevenue / 2) + barRevenue;
+    }
+    
+    // Otherwise, count 100% of ticket revenue
+    return ticketsRevenue + barRevenue;
+  };
+
   return (
     <Dialog open={!!selectedDate} onOpenChange={() => onClose?.()}>
       <DialogContent className="sm:max-w-[550px] p-0 overflow-hidden">
@@ -105,18 +122,39 @@ export function ViewShowDialog({
             <div className="flex items-center gap-2 mt-1 text-muted-foreground">
               <Calendar className="h-4 w-4" />
               <span>{formatDate(selectedDate?.toISOString() || '')}</span>
-              {show.startTime && (
-                <>
-                  <span>•</span>
-                  <Clock className="h-4 w-4" />
-                  <span>{show.startTime}</span>
-                </>
-              )}
             </div>
+            {show.startTime && (
+              <div className="flex items-center gap-2 mt-1 text-muted-foreground">
+                <Clock className="h-4 w-4" />
+                <span>{show.startTime}</span>
+              </div>
+            )}
           </DialogHeader>
         </div>
         
         <div className="p-6 space-y-6 max-h-[60vh] overflow-y-auto">
+          {/* 50/50 Split Option */}
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <SplitSquareVertical className="h-5 w-5 text-primary" />
+                  <Label htmlFor="fifty-fifty" className="font-medium">50/50 Revenue Split</Label>
+                </div>
+                <Switch 
+                  id="fifty-fifty" 
+                  checked={!!show.isFiftyFifty} 
+                  disabled={true} // Read-only in view mode
+                />
+              </div>
+              {show.isFiftyFifty && (
+                <p className="text-sm text-muted-foreground mt-2">
+                  This show has a 50/50 revenue split. Only 50% of ticket revenue is counted in the total.
+                </p>
+              )}
+            </CardContent>
+          </Card>
+
           {/* Comics Section */}
           {comics.length > 0 && (
             <Card>
@@ -169,6 +207,11 @@ export function ViewShowDialog({
                         <DollarSign className="h-3 w-3" /> Ticket Revenue
                       </div>
                       <div className="text-xl font-semibold">{formatCurrency(show.ticketsRevenue)}</div>
+                      {show.isFiftyFifty && show.ticketsRevenue && (
+                        <div className="text-xs text-muted-foreground mt-1">
+                          50% share: {formatCurrency(show.ticketsRevenue / 2)}
+                        </div>
+                      )}
                     </div>
                   )}
                   
@@ -187,8 +230,13 @@ export function ViewShowDialog({
                         <DollarSign className="h-3 w-3" /> Total Revenue
                       </div>
                       <div className="text-xl font-semibold">
-                        {formatCurrency((show.ticketsRevenue || 0) + (show.barRevenue || 0))}
+                        {formatCurrency(calculateTotalRevenue())}
                       </div>
+                      {show.isFiftyFifty && (
+                        <div className="text-xs text-amber-600 mt-1 font-medium">
+                          50/50 split applied
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
