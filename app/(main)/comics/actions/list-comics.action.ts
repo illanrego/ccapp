@@ -2,8 +2,13 @@
 
 import { getUser } from "@/lib/auth";
 import { listComicsService } from "../services/list-comics.service";
+import { SelectComic } from "@/db/schema";
 
-export async function listComics() {
+export interface ComicWithAvgTickets extends SelectComic {
+    avgTicketsSold: number;
+}
+
+export async function listComics(): Promise<ComicWithAvgTickets[]> {
     const { user } = await getUser();
     if (!user) {
         throw new Error('Unauthorized');

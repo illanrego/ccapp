@@ -3,11 +3,11 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Plus } from "lucide-react";
-import { listComics } from "./actions/list-comics.action";
+import { listComics, ComicWithAvgTickets } from "./actions/list-comics.action";
 import { ComicCard } from "./components/comic-card";
 import { AddComicDialog } from "./components/add-comic-dialog";
 import { useState, useEffect, useMemo } from "react";
-import { SelectComic, comicClassEnum } from "@/db/schema";
+import { comicClassEnum } from "@/db/schema";
 import {
   Select,
   SelectContent,
@@ -17,10 +17,11 @@ import {
 } from "@/components/ui/select";
 
 export default function ComicsPage() {
-  const [comics, setComics] = useState<SelectComic[]>([]);
+  const [comics, setComics] = useState<ComicWithAvgTickets[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedClass, setSelectedClass] = useState<string | null>(null);
   const [selectedCity, setSelectedCity] = useState<string | null>(null);
+  const [sortBy, setSortBy] = useState<'avgTickets' | 'name'>('avgTickets');
   
   useEffect(() => {
     const fetchComics = async () => {
@@ -39,18 +40,56 @@ export default function ComicsPage() {
     return Array.from(new Set(cities));
   }, [comics]);
 
-  const filteredComics = comics.filter(comic => {
-    const matchesSearch = comic.name.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesClass = selectedClass === 'all' || !selectedClass || comic.class === selectedClass;
-    const matchesCity = selectedCity === 'all' || !selectedCity || comic.city === selectedCity;
-    return matchesSearch && matchesClass && matchesCity;
-  });
+  const filteredComics = useMemo(() => {
+    return comics.filter(comic => {
+      const matchesSearch = comic.name.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesClass = selectedClass === 'all' || !selectedClass || comic.class === selectedClass;
+      const matchesCity = selectedCity === 'all' || !selectedCity || comic.city === selectedCity;
+      return matchesSearch && matchesClass && matchesCity;
+    });
+  }, [comics, searchQuery, selectedClass, selectedCity]);
+
+  // Group comics by class
+  const comicsByClass = useMemo(() => {
+    const grouped = filteredComics.reduce((acc, comic) => {
+      const comicClass = comic.class || 'Unclassified';
+      if (!acc[comicClass]) {
+        acc[comicClass] = [];
+      }
+      acc[comicClass].push(comic);
+      return acc;
+    }, {} as Record<string, ComicWithAvgTickets[]>);
+
+    // Sort comics within each class
+    Object.keys(grouped).forEach(classKey => {
+      grouped[classKey].sort((a, b) => {
+        if (sortBy === 'avgTickets') {
+          return b.avgTicketsSold - a.avgTicketsSold;
+        }
+        return a.name.localeCompare(b.name);
+      });
+    });
+
+    // Return classes in order: S, A, B, C, Unclassified
+    const orderedClasses = ['S', 'A', 'B', 'C', 'Unclassified'];
+    return orderedClasses.reduce((acc, classKey) => {
+      if (grouped[classKey]?.length > 0) {
+        acc[classKey] = grouped[classKey];
+      }
+      return acc;
+    }, {} as Record<string, ComicWithAvgTickets[]>);
+  }, [filteredComics, sortBy]);
+
+  const handleComicUpdate = async () => {
+    const updatedComics = await listComics();
+    setComics(updatedComics);
+  };
 
   return (
     <div className="container py-8">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Comics</h1>
-        <AddComicDialog onComicAdded={() => listComics().then(setComics)}>
+        <AddComicDialog onComicAdded={handleComicUpdate}>
           <Button>
             <Plus className="mr-2 h-4 w-4" />
             Add Comic
@@ -93,15 +132,37 @@ export default function ComicsPage() {
             ))}
           </SelectContent>
         </Select>
+        <Select value={sortBy} onValueChange={(value: 'avgTickets' | 'name') => setSortBy(value)}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Sort by" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="avgTickets">Average Tickets Sold</SelectItem>
+            <SelectItem value="name">Name</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredComics.map((comic) => (
-          <ComicCard 
-            key={comic.id} 
-            comic={comic}
-            onComicUpdated={() => listComics().then(setComics)}
-          />
+      <div className="space-y-8">
+        {Object.entries(comicsByClass).map(([classKey, classComics]) => (
+          <div key={classKey} className="space-y-4">
+            <div className="flex items-center gap-4">
+              <h2 className="text-2xl font-semibold">
+                Class {classKey}
+              </h2>
+              <div className="h-px flex-1 bg-border" />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {classComics.map((comic) => (
+                <ComicCard 
+                  key={comic.id} 
+                  comic={comic}
+                  avgTicketsSold={comic.avgTicketsSold}
+                  onComicUpdated={handleComicUpdate}
+                />
+              ))}
+            </div>
+          </div>
         ))}
       </div>
     </div>
