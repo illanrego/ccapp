@@ -12,7 +12,6 @@ import { deleteShow } from "./actions/delete-dia.action";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { SelectComic } from "@/db/schema";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Beer, Ticket } from "lucide-react";
 
 interface ShowWithDateObject {
@@ -59,12 +58,6 @@ export default function CalendarPage() {
     
     return acc;
   }, {} as Record<string, ShowWithDateObject[]>);
-
-  // Calculate total tickets sold for each date
-  const dateTotalTickets = Object.entries(eventDates).reduce((acc, [dateStr, shows]) => {
-    acc[dateStr] = shows.reduce((total, show) => total + (show.ticketsSold || 0), 0);
-    return acc;
-  }, {} as Record<string, number>);
 
   // Calculate shows count for each ticket range
   const ticketRangeCounts = shows.reduce((acc, { show }) => {
@@ -222,27 +215,13 @@ export default function CalendarPage() {
                   const dateStr = date.toISOString().split('T')[0];
                   const showsOnDate = eventDates[dateStr] || [];
                   const hasEvent = showsOnDate.length > 0;
-                  const totalTickets = dateTotalTickets[dateStr] || 0;
                   
                   return (
                     <div 
                       className="w-full h-full min-h-[120px] p-2"
                     >
                       <div className={`text-right mb-2 ${hasEvent ? "font-bold" : ""}`}>
-                        {hasEvent ? (
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <span className="cursor-help">{date.getDate()}</span>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>Total tickets sold: {totalTickets}</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        ) : (
-                          date.getDate()
-                        )}
+                        {date.getDate()}
                       </div>
                       {hasEvent && (
                         <div className="space-y-2">
@@ -263,7 +242,7 @@ export default function CalendarPage() {
                                     <div className="flex items-center justify-between flex-col">
                                       {show.showName && (
                                         <div className="flex flex-col w-full px-1">
-                                          <div className="text-[13px] truncate mb-1 font-medium text-white">
+                                          <div className="text-[16px] truncate mb-1 font-medium text-white">
                                             {show.showName}
                                           </div>
                                           {show.ticketsSold !== null && (
@@ -286,19 +265,19 @@ export default function CalendarPage() {
                                       )}
                                     </div>
                                     {eventComics[dateStr]?.[show.id] && (
-                                      <div className="grid grid-cols-2 gap-1 justify-items-center mt-1">
-                                        {eventComics[dateStr][show.id].slice(0, 4).map((comic) => (
-                                          <Avatar key={comic.id} className="w-8 h-8 border border-border">
+                                      <div className="grid grid-cols-3 gap-1 justify-items-center mt-1">
+                                        {eventComics[dateStr][show.id].slice(0, 6).map((comic) => (
+                                          <Avatar key={comic.id} className="w-10 h-10 border border-border">
                                             <AvatarImage src={comic.picUrl || undefined} alt={comic.name} />
                                             <AvatarFallback className="text-xs">
                                               {comic.name.split(' ').map((n) => n[0]).join('')}
                                             </AvatarFallback>
                                           </Avatar>
                                         ))}
-                                        {eventComics[dateStr][show.id].length > 4 && (
-                                          <div className="col-span-2 mt-1 text-center">
+                                        {eventComics[dateStr][show.id].length > 6 && (
+                                          <div className="col-span-3 mt-1 text-center">
                                             <div className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-muted text-[11px] font-medium">
-                                              +{eventComics[dateStr][show.id].length - 4}
+                                              +{eventComics[dateStr][show.id].length - 6}
                                             </div>
                                           </div>
                                         )}
