@@ -11,9 +11,9 @@ import { getShows } from "./actions/get-dias.action";
 import { deleteShow } from "./actions/delete-dia.action";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
-import { Badge } from "@/components/ui/badge";
 import { SelectComic } from "@/db/schema";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Beer, Ticket } from "lucide-react";
 
 interface ShowWithDateObject {
   id: number;
@@ -66,31 +66,35 @@ export default function CalendarPage() {
     return acc;
   }, {} as Record<string, number>);
 
+  // Calculate shows count for each ticket range
+  const ticketRangeCounts = shows.reduce((acc, { show }) => {
+    const ticketsSold = show.ticketsSold || 0;
+    if (ticketsSold >= 41) {
+      acc['41+'] = (acc['41+'] || 0) + 1;
+    } else if (ticketsSold >= 31) {
+      acc['31-40'] = (acc['31-40'] || 0) + 1;
+    } else if (ticketsSold >= 21) {
+      acc['21-30'] = (acc['21-30'] || 0) + 1;
+    } else if (ticketsSold >= 11) {
+      acc['11-20'] = (acc['11-20'] || 0) + 1;
+    } else {
+      acc['0-10'] = (acc['0-10'] || 0) + 1;
+    }
+    return acc;
+  }, {} as Record<string, number>);
+
   // Function to get background color based on ticket sales
   const getTicketSalesColor = (ticketsSold: number) => {
-    // Max tickets threshold (fully green)
-    const maxTickets = 51;
-    // Mid tickets threshold (yellow)
-    const midTickets = 25;
-    
-    if (ticketsSold >= maxTickets) {
-      return "rgba(0, 128, 0, 0.25)"; // Green with transparency
-    } else if (ticketsSold <= 0) {
-      return "rgba(255, 0, 0, 0.25)"; // Red with transparency
-    } else if (ticketsSold < midTickets) {
-      // Gradient from red to yellow
-      const ratio = ticketsSold / midTickets;
-      const r = 255;
-      const g = Math.floor(255 * ratio);
-      const b = 0;
-      return `rgba(${r}, ${g}, ${b}, 0.25)`;
+    if (ticketsSold >= 41) {
+      return "rgba(11, 200, 0, 0.71)"; // Bright fluorescent green (Spring Green)
+    } else if (ticketsSold >= 31) {
+      return "rgba(11, 128, 40, 0.67)"; // Dark green
+    } else if (ticketsSold >= 21) {
+      return "rgba(255, 236, 0, 0.25)"; // Sunny yellow
+    } else if (ticketsSold >= 11) {
+      return "rgba(255, 165, 0, 0.25)"; // Orange
     } else {
-      // Gradient from yellow to green
-      const ratio = (ticketsSold - midTickets) / (maxTickets - midTickets);
-      const r = Math.floor(255 * (1 - ratio));
-      const g = 128 + Math.floor(127 * ratio);
-      const b = 0;
-      return `rgba(${r}, ${g}, ${b}, 0.25)`;
+      return "rgba(255, 0, 0, 0.25)"; // Red
     }
   };
 
@@ -107,6 +111,12 @@ export default function CalendarPage() {
     acc[dateStr][show.id] = comics || [];
     return acc;
   }, {} as Record<string, Record<number, (SelectComic & { comicShow?: { comicId: string; showId: number; position?: string | null } })[]>>);
+
+  // Function to get number of beer icons
+  const getBeerIcons = (barRevenue: number | null) => {
+    if (!barRevenue) return 0;
+    return Math.floor(barRevenue / 200);
+  };
 
   const handleDateSelect = (date: Date | undefined) => {
     setSelectedDate(date);
@@ -144,30 +154,50 @@ export default function CalendarPage() {
 
   return (
     <div className="container max-w-[2000px] py-10">
-      <div className="flex flex-col gap-4 mb-8">
-        <div className="flex items-center justify-between">
-          <h1 className="text-4xl font-bold">Calendar</h1>
+      <div className="flex flex-col gap-6 mb-8">
+        <div className="flex items-center justify-center">
+          <h1 className="text-6xl font-bold">Calendar</h1>
         </div>
-        <div className="flex items-center gap-4 text-sm">
-          <span className="font-medium">Ticket Sales:</span>
-          <div className="flex items-center gap-1">
-            <div className="w-4 h-4 rounded-sm" style={{ backgroundColor: "rgba(255, 0, 0, 0.25)" }}></div>
-            <span>0</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <div className="w-4 h-4 rounded-sm" style={{ backgroundColor: "rgba(255, 255, 0, 0.25)" }}></div>
-            <span>25</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <div className="w-4 h-4 rounded-sm" style={{ backgroundColor: "rgba(0, 128, 0, 0.25)" }}></div>
-            <span>51+</span>
+        <div className="flex flex-col items-center gap-2">
+          <span className="text-3xl font-medium">Ticket Sales</span>
+          <div className="flex items-center gap-6 flex-wrap justify-center">
+            <div className="flex items-center gap-2">
+              <div className="w-12 h-12 rounded-md flex items-center justify-center text-xl font-medium" style={{ backgroundColor: "rgba(255, 0, 0, 0.25)" }}>
+                {ticketRangeCounts['0-10'] || 0}
+              </div>
+              <span>0-10</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-12 h-12 rounded-md flex items-center justify-center text-xl font-medium" style={{ backgroundColor: "rgba(255, 165, 0, 0.25)" }}>
+                {ticketRangeCounts['11-20'] || 0}
+              </div>
+              <span>11-20</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-12 h-12 rounded-md flex items-center justify-center text-xl font-medium" style={{ backgroundColor: "rgba(255, 236, 0, 0.25)" }}>
+                {ticketRangeCounts['21-30'] || 0}
+              </div>
+              <span>21-30</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-12 h-12 rounded-md flex items-center justify-center text-xl font-medium" style={{ backgroundColor: "rgba(11, 128, 40, 0.67)" }}>
+                {ticketRangeCounts['31-40'] || 0}
+              </div>
+              <span>31-40</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-12 h-12 rounded-md flex items-center justify-center text-xl font-medium" style={{ backgroundColor: "rgba(11, 200, 0, 0.71)" }}>
+                {ticketRangeCounts['41+'] || 0}
+              </div>
+              <span>41+</span>
+            </div>
           </div>
         </div>
       </div>
       
-      <div className="grid grid-cols-1 lg:grid-cols-[5fr_1fr] xl:grid-cols-[6fr_1fr] gap-8">
+      <div className="w-full">
         <Card className="w-full overflow-x-auto">
-          <CardContent className="pt-6 w-full min-w-[1120px]">
+          <CardContent className="pt-6 w-full">
             <Calendar
               mode="single"
               selected={selectedDate}
@@ -194,13 +224,9 @@ export default function CalendarPage() {
                   const hasEvent = showsOnDate.length > 0;
                   const totalTickets = dateTotalTickets[dateStr] || 0;
                   
-                  // Calculate background color based on ticket sales
-                  const backgroundColor = hasEvent ? getTicketSalesColor(totalTickets) : undefined;
-
                   return (
                     <div 
                       className="w-full h-full min-h-[120px] p-2"
-                      style={{ backgroundColor }}
                     >
                       <div className={`text-right mb-2 ${hasEvent ? "font-bold" : ""}`}>
                         {hasEvent ? (
@@ -224,6 +250,7 @@ export default function CalendarPage() {
                             <div 
                               key={show.id} 
                               className="border border-border rounded-md p-2 cursor-pointer hover:bg-muted/50 transition-colors"
+                              style={{ backgroundColor: getTicketSalesColor(show.ticketsSold || 0) }}
                               onClick={(e) => {
                                 e.stopPropagation();
                                 setSelectedDate(date);
@@ -236,17 +263,23 @@ export default function CalendarPage() {
                                     <div className="flex items-center justify-between flex-col">
                                       {show.showName && (
                                         <div className="flex flex-col w-full px-1">
-                                          <div className="text-[13px] text-muted-foreground truncate mb-1">
+                                          <div className="text-[13px] truncate mb-1 font-medium text-white">
                                             {show.showName}
                                           </div>
-                                          {show.startTime && (
-                                            <Badge variant="outline" className="text-[10px] h-5 w-fit">
-                                              {show.startTime} 
-                                            </Badge>
-                                          )}
                                           {show.ticketsSold !== null && (
-                                            <div className="text-[10px] text-muted-foreground mt-1">
-                                              Tickets: {show.ticketsSold}
+                                            <div className="flex items-center justify-center gap-2 text-base font-medium mt-1 text-white">
+                                              <Ticket className="h-4 w-4" />
+                                              {show.ticketsSold}
+                                            </div>
+                                          )}
+                                          {show.barRevenue && getBeerIcons(show.barRevenue) > 0 && (
+                                            <div className="flex items-center justify-center gap-1 mt-1">
+                                              {Array.from({ length: getBeerIcons(show.barRevenue) }).map((_, i) => (
+                                                <Beer 
+                                                  key={i} 
+                                                  className="h-4 w-4 text-white"
+                                                />
+                                              ))}
                                             </div>
                                           )}
                                         </div>
@@ -331,80 +364,6 @@ export default function CalendarPage() {
             />
           </CardContent>
         </Card>
-
-        <div className="space-y-4">
-          <h2 className="text-xl font-semibold">Upcoming Shows</h2>
-          {shows
-            .filter(({ show }) => {
-              const [year, month, day] = show.date.split('T')[0].split('-').map(Number);
-              const date = new Date(year, month - 1, day);
-              const today = new Date();
-              today.setHours(0, 0, 0, 0);
-              return date >= today;
-            })
-            .sort((a, b) => {
-              const [yearA, monthA, dayA] = a.show.date.split('T')[0].split('-').map(Number);
-              const [yearB, monthB, dayB] = b.show.date.split('T')[0].split('-').map(Number);
-              const dateA = new Date(yearA, monthA - 1, dayA);
-              const dateB = new Date(yearB, monthB - 1, dayB);
-              
-              // First sort by date
-              const dateDiff = dateA.getTime() - dateB.getTime();
-              if (dateDiff !== 0) return dateDiff;
-              
-              // If same date, sort by start time
-              if (a.show.startTime && b.show.startTime) {
-                return a.show.startTime.localeCompare(b.show.startTime);
-              } else if (a.show.startTime) {
-                return -1;
-              } else if (b.show.startTime) {
-                return 1;
-              }
-              
-              return 0;
-            })
-            .map(({ show, comics }) => (
-              <Card 
-                key={show.id} 
-                className="cursor-pointer hover:shadow-md transition-shadow"
-                onClick={() => {
-                  const [year, month, day] = show.date.split('T')[0].split('-').map(Number);
-                  const date = new Date(year, month - 1, day);
-                  setSelectedDate(date);
-                  setSelectedShow({
-                    ...show,
-                    date,
-                    ticketsRevenue: Number(show.ticketsRevenue),
-                    barRevenue: Number(show.barRevenue),
-                  });
-                  setIsEditing(false);
-                }}
-              >
-                <CardContent className="pt-6">
-                  <div className="font-medium">
-                    {formatDate(show.date.split('T')[0])}
-                  </div>
-                  <div className="flex items-center justify-between mt-1">
-                    {show.showName && (
-                      <div className="text-sm text-muted-foreground">
-                        {show.showName}
-                      </div>
-                    )}
-                    {show.startTime && (
-                      <Badge variant="outline" className="text-xs">
-                        {show.startTime}
-                      </Badge>
-                    )}
-                  </div>
-                  {comics && comics.length > 0 && (
-                    <div className="text-sm text-muted-foreground mt-1">
-                      With: {comics.map((c) => c.name).join(", ")}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
-        </div>
       </div>
 
       {/* Show the appropriate dialog based on whether we're creating, viewing, or editing */}

@@ -101,11 +101,6 @@ export function CalendarPreviewDialog({
                           <HoverCard key={show.id}>
                             <HoverCardTrigger asChild>
                               <div className="flex items-center gap-1">
-                                {show.startTime && (
-                                  <Badge variant="outline" className="text-[8px] h-4 px-1">
-                                    {show.startTime}
-                                  </Badge>
-                                )}
                                 {eventComics[dateStr]?.[show.id] && eventComics[dateStr][show.id].length > 0 && (
                                   <Avatar className="w-6 h-6 border border-border">
                                     <AvatarImage 
