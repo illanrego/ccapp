@@ -15,7 +15,7 @@ import { deleteShow } from "../actions/delete-dia.action";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Calendar, Clock, DollarSign, Ticket, Users, Star, BarChart, SplitSquareVertical } from "lucide-react";
+import { Calendar, Clock, DollarSign, Ticket, Users, Star, BarChart, SplitSquareVertical, Coffee } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -123,6 +123,18 @@ export function ViewShowDialog({
     
     // Otherwise, count 100% of ticket revenue
     return ticketsRevenue + barRevenue;
+  };
+
+  // Calculate average consumption per person
+  const calculateAverageConsumption = () => {
+    const ticketsSold = show.ticketsSold || 0;
+    const barRevenue = show.barRevenue || 0;
+    
+    // Avoid division by zero
+    if (ticketsSold === 0) return 0;
+    
+    // Calculate average bar revenue per person
+    return barRevenue / ticketsSold;
   };
 
   return (
@@ -256,6 +268,21 @@ export function ViewShowDialog({
                           50/50 split applied
                         </div>
                       )}
+                    </div>
+                  )}
+
+                  {/* Average Consumption Per Person */}
+                  {show.ticketsSold !== null && show.ticketsSold > 0 && show.barRevenue !== null && (
+                    <div className="flex flex-col p-3 rounded-md bg-muted/30">
+                      <div className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
+                        <Coffee className="h-3 w-3" /> Avg. Consumption/Person
+                      </div>
+                      <div className="text-xl font-semibold">
+                        {formatCurrency(calculateAverageConsumption())}
+                      </div>
+                      <div className="text-xs text-muted-foreground mt-1">
+                        Based on {show.ticketsSold} tickets sold
+                      </div>
                     </div>
                   )}
                 </div>
