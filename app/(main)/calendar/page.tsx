@@ -13,6 +13,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { Badge } from "@/components/ui/badge";
 import { SelectComic } from "@/db/schema";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface ShowWithDateObject {
   id: number;
@@ -58,6 +59,40 @@ export default function CalendarPage() {
     
     return acc;
   }, {} as Record<string, ShowWithDateObject[]>);
+
+  // Calculate total tickets sold for each date
+  const dateTotalTickets = Object.entries(eventDates).reduce((acc, [dateStr, shows]) => {
+    acc[dateStr] = shows.reduce((total, show) => total + (show.ticketsSold || 0), 0);
+    return acc;
+  }, {} as Record<string, number>);
+
+  // Function to get background color based on ticket sales
+  const getTicketSalesColor = (ticketsSold: number) => {
+    // Max tickets threshold (fully green)
+    const maxTickets = 51;
+    // Mid tickets threshold (yellow)
+    const midTickets = 25;
+    
+    if (ticketsSold >= maxTickets) {
+      return "rgba(0, 128, 0, 0.25)"; // Green with transparency
+    } else if (ticketsSold <= 0) {
+      return "rgba(255, 0, 0, 0.25)"; // Red with transparency
+    } else if (ticketsSold < midTickets) {
+      // Gradient from red to yellow
+      const ratio = ticketsSold / midTickets;
+      const r = 255;
+      const g = Math.floor(255 * ratio);
+      const b = 0;
+      return `rgba(${r}, ${g}, ${b}, 0.25)`;
+    } else {
+      // Gradient from yellow to green
+      const ratio = (ticketsSold - midTickets) / (maxTickets - midTickets);
+      const r = Math.floor(255 * (1 - ratio));
+      const g = 128 + Math.floor(127 * ratio);
+      const b = 0;
+      return `rgba(${r}, ${g}, ${b}, 0.25)`;
+    }
+  };
 
   // Create a map of dates to comics for easier lookup
   const eventComics = shows.reduce((acc, { show, comics }) => {
@@ -113,6 +148,21 @@ export default function CalendarPage() {
         <div className="flex items-center justify-between">
           <h1 className="text-4xl font-bold">Calendar</h1>
         </div>
+        <div className="flex items-center gap-4 text-sm">
+          <span className="font-medium">Ticket Sales:</span>
+          <div className="flex items-center gap-1">
+            <div className="w-4 h-4 rounded-sm" style={{ backgroundColor: "rgba(255, 0, 0, 0.25)" }}></div>
+            <span>0</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <div className="w-4 h-4 rounded-sm" style={{ backgroundColor: "rgba(255, 255, 0, 0.25)" }}></div>
+            <span>25</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <div className="w-4 h-4 rounded-sm" style={{ backgroundColor: "rgba(0, 128, 0, 0.25)" }}></div>
+            <span>51+</span>
+          </div>
+        </div>
       </div>
       
       <div className="grid grid-cols-1 lg:grid-cols-[5fr_1fr] xl:grid-cols-[6fr_1fr] gap-8">
@@ -131,9 +181,9 @@ export default function CalendarPage() {
               modifiersStyles={{
                 event: {
                   fontWeight: "bold",
-                  backgroundColor: "hsl(var(--primary) / 0.15)",
                   color: "hsl(var(--primary))",
                   borderRadius: "4px",
+                  // Background color is now set in the DayContent component
                 },
               }}
               className="w-full"
@@ -142,11 +192,31 @@ export default function CalendarPage() {
                   const dateStr = date.toISOString().split('T')[0];
                   const showsOnDate = eventDates[dateStr] || [];
                   const hasEvent = showsOnDate.length > 0;
+                  const totalTickets = dateTotalTickets[dateStr] || 0;
+                  
+                  // Calculate background color based on ticket sales
+                  const backgroundColor = hasEvent ? getTicketSalesColor(totalTickets) : undefined;
 
                   return (
-                    <div className="w-full h-full min-h-[120px] p-2">
+                    <div 
+                      className="w-full h-full min-h-[120px] p-2"
+                      style={{ backgroundColor }}
+                    >
                       <div className={`text-right mb-2 ${hasEvent ? "font-bold" : ""}`}>
-                        {date.getDate()}
+                        {hasEvent ? (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <span className="cursor-help">{date.getDate()}</span>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Total tickets sold: {totalTickets}</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        ) : (
+                          date.getDate()
+                        )}
                       </div>
                       {hasEvent && (
                         <div className="space-y-2">
@@ -173,6 +243,11 @@ export default function CalendarPage() {
                                             <Badge variant="outline" className="text-[10px] h-5 w-fit">
                                               {show.startTime} 
                                             </Badge>
+                                          )}
+                                          {show.ticketsSold !== null && (
+                                            <div className="text-[10px] text-muted-foreground mt-1">
+                                              Tickets: {show.ticketsSold}
+                                            </div>
                                           )}
                                         </div>
                                       )}
