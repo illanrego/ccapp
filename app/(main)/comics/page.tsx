@@ -21,7 +21,7 @@ export default function ComicsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedClass, setSelectedClass] = useState<string | null>(null);
   const [selectedCity, setSelectedCity] = useState<string | null>(null);
-  const [sortBy, setSortBy] = useState<'avgTickets' | 'name'>('avgTickets');
+  const [sortBy, setSortBy] = useState<'avgTickets' | 'avgBarRevenue' | 'name'>('avgTickets');
   
   useEffect(() => {
     const fetchComics = async () => {
@@ -65,6 +65,9 @@ export default function ComicsPage() {
       grouped[classKey].sort((a, b) => {
         if (sortBy === 'avgTickets') {
           return b.avgTicketsSold - a.avgTicketsSold;
+        }
+        if (sortBy === 'avgBarRevenue') {
+          return b.avgBarRevenue - a.avgBarRevenue;
         }
         return a.name.localeCompare(b.name);
       });
@@ -132,12 +135,13 @@ export default function ComicsPage() {
             ))}
           </SelectContent>
         </Select>
-        <Select value={sortBy} onValueChange={(value: 'avgTickets' | 'name') => setSortBy(value)}>
+        <Select value={sortBy} onValueChange={(value: 'avgTickets' | 'avgBarRevenue' | 'name') => setSortBy(value)}>
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Sort by" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="avgTickets">Average Tickets Sold</SelectItem>
+            <SelectItem value="avgTickets">Average Tickets</SelectItem>
+            <SelectItem value="avgBarRevenue">Average Bar Revenue</SelectItem>
             <SelectItem value="name">Name</SelectItem>
           </SelectContent>
         </Select>
@@ -158,6 +162,7 @@ export default function ComicsPage() {
                   key={comic.id} 
                   comic={comic}
                   avgTicketsSold={comic.avgTicketsSold}
+                  avgBarRevenue={comic.avgBarRevenue}
                   onComicUpdated={handleComicUpdate}
                 />
               ))}

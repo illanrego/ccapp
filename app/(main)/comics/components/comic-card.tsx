@@ -1,6 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { SelectComic } from "@/db/schema";
-import { Users, Pencil, Ticket } from "lucide-react";
+import { Users, Pencil, Ticket, Beer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { AddComicDialog } from "./add-comic-dialog";
@@ -9,10 +9,11 @@ import Link from "next/link";
 interface ComicCardProps {
   comic: SelectComic;
   avgTicketsSold: number;
+  avgBarRevenue: number;
   onComicUpdated?: () => void;
 }
 
-export function ComicCard({ comic, avgTicketsSold, onComicUpdated }: ComicCardProps) {
+export function ComicCard({ comic, avgTicketsSold, avgBarRevenue, onComicUpdated }: ComicCardProps) {
   const [isHovered, setIsHovered] = useState(false);
 
   return (
@@ -57,7 +58,11 @@ export function ComicCard({ comic, avgTicketsSold, onComicUpdated }: ComicCardPr
               </div>
               <div className="flex items-center">
                 <Ticket className="h-4 w-4 mr-1" />
-                {Math.round(avgTicketsSold)} avg. tickets
+                {Math.round(avgTicketsSold)} avg
+              </div>
+              <div className="flex items-center">
+                <Beer className="h-4 w-4 mr-1" />
+                R${avgBarRevenue.toFixed(2)} avg
               </div>
             </div>
           </div>

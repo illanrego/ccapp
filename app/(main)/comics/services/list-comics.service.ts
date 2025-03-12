@@ -13,7 +13,8 @@ export async function listComicsService(): Promise<ComicWithAvgTickets[]> {
             socialMedia: comicsTable.socialMedia,
             class: comicsTable.class,
             time: comicsTable.time,
-            avgTicketsSold: sql<number>`COALESCE(AVG(${showsTable.ticketsSold}), 0)`.as('avg_tickets_sold')
+            avgTicketsSold: sql<number>`COALESCE(AVG(${showsTable.ticketsSold}), 0)`.as('avg_tickets_sold'),
+            avgBarRevenue: sql<number>`COALESCE(AVG(${showsTable.barRevenue}), 0)`.as('avg_bar_revenue')
         })
         .from(comicsTable)
         .leftJoin(
@@ -33,6 +34,7 @@ export async function listComicsService(): Promise<ComicWithAvgTickets[]> {
 
     return comicsWithAvgTickets.map(comic => ({
         ...comic,
-        avgTicketsSold: Number(comic.avgTicketsSold)
+        avgTicketsSold: Number(comic.avgTicketsSold),
+        avgBarRevenue: Number(comic.avgBarRevenue)
     }));
 } 

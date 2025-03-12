@@ -6,6 +6,7 @@ import { SelectComic } from "@/db/schema";
 
 export interface ComicWithAvgTickets extends SelectComic {
     avgTicketsSold: number;
+    avgBarRevenue: number;
 }
 
 export async function listComics(): Promise<ComicWithAvgTickets[]> {
