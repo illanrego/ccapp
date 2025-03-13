@@ -23,6 +23,7 @@ interface ShowWithDateObject {
   barRevenue?: number | null;
   showQuality?: string | null;
   isFiftyFifty?: boolean | null;
+  freeTickets?: number | null;
 }
 
 interface CalendarPreviewDialogProps {
@@ -130,9 +131,10 @@ export function CalendarPreviewDialog({
                                     Start time: {show.startTime}
                                   </div>
                                 )}
-                                {eventComics[dateStr]?.[show.id] && (
+                                {show.ticketsSold !== null && (
                                   <div className="text-sm text-muted-foreground">
-                                    {eventComics[dateStr][show.id].length} {eventComics[dateStr][show.id].length === 1 ? 'comic' : 'comics'}
+                                    {show.ticketsSold} tickets sold
+                                    {show.freeTickets ? ` + ${show.freeTickets} free tickets` : ''}
                                   </div>
                                 )}
                                 {eventComics[dateStr]?.[show.id] && (

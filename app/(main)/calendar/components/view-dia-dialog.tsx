@@ -34,6 +34,7 @@ interface ViewShowDialogProps {
     barRevenue?: number | null;
     showQuality?: string | null;
     isFiftyFifty?: boolean | null;
+    freeTickets?: number | null;
   };
   comics?: (SelectComic & { comicShow?: { comicId: string; showId: number; position?: string | null } })[];
   onClose?: () => void;
@@ -75,23 +76,6 @@ export function ViewShowDialog({
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
   };
 
-  const getQualityColor = (quality: string | null | undefined) => {
-    if (!quality) return "bg-gray-200 text-gray-700";
-    
-    switch (quality.toLowerCase()) {
-      case "excellent":
-        return "bg-green-100 text-green-800";
-      case "good":
-        return "bg-blue-100 text-blue-800";
-      case "average":
-        return "bg-yellow-100 text-yellow-800";
-      case "poor":
-        return "bg-red-100 text-red-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
-  };
-
   const getPositionColor = (position: string | null | undefined) => {
     if (!position) return "";
     
@@ -111,30 +95,18 @@ export function ViewShowDialog({
     }
   };
 
-  // Calculate total revenue based on 50/50 split if applicable
-  const calculateTotalRevenue = () => {
-    const ticketsRevenue = show.ticketsRevenue || 0;
-    const barRevenue = show.barRevenue || 0;
-    
-    // If 50/50 split is enabled, only count 50% of ticket revenue
-    if (show.isFiftyFifty) {
-      return (ticketsRevenue / 2) + barRevenue;
-    }
-    
-    // Otherwise, count 100% of ticket revenue
-    return ticketsRevenue + barRevenue;
-  };
-
   // Calculate average consumption per person
   const calculateAverageConsumption = () => {
-    const ticketsSold = show.ticketsSold || 0;
-    const barRevenue = show.barRevenue || 0;
+    const ticketsSold = show.ticketsSold ?? 0;
+    const freeTickets = show.freeTickets ?? 0;
+    const barRevenue = show.barRevenue ?? 0;
     
     // Avoid division by zero
-    if (ticketsSold === 0) return 0;
+    const totalAttendance = ticketsSold + freeTickets;
+    if (totalAttendance === 0) return 0;
     
     // Calculate average bar revenue per person
-    return barRevenue / ticketsSold;
+    return barRevenue / totalAttendance;
   };
 
   return (
@@ -222,57 +194,69 @@ export function ViewShowDialog({
                   <BarChart className="h-5 w-5" />
                   <h3>Performance</h3>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                  {/* Tickets Sold */}
                   {show.ticketsSold !== null && (
                     <div className="flex flex-col p-3 rounded-md bg-muted/30">
                       <div className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
                         <Ticket className="h-3 w-3" /> Tickets Sold
                       </div>
-                      <div className="text-xl font-semibold">{show.ticketsSold}</div>
+                      <div className="text-xl font-semibold">
+                        {show.ticketsSold ?? 0}
+                      </div>
                     </div>
                   )}
-                  
+
+                  {/* Free Tickets */}
+                  {(show.freeTickets ?? 0) > 0 && (
+                    <div className="flex flex-col p-3 rounded-md bg-muted/30">
+                      <div className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
+                        <Users className="h-3 w-3" /> Free Tickets
+                      </div>
+                      <div className="text-xl font-semibold">
+                        {show.freeTickets}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Tickets Revenue */}
                   {show.ticketsRevenue !== null && (
                     <div className="flex flex-col p-3 rounded-md bg-muted/30">
                       <div className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
-                        <DollarSign className="h-3 w-3" /> Ticket Revenue
+                        <DollarSign className="h-3 w-3" /> Tickets Revenue
                       </div>
-                      <div className="text-xl font-semibold">{formatCurrency(show.ticketsRevenue)}</div>
-                      {show.isFiftyFifty && show.ticketsRevenue && (
-                        <div className="text-xs text-muted-foreground mt-1">
-                          50% share: {formatCurrency(show.ticketsRevenue / 2)}
-                        </div>
-                      )}
+                      <div className="text-xl font-semibold">
+                        {formatCurrency(show.ticketsRevenue)}
+                      </div>
                     </div>
                   )}
-                  
+
+                  {/* Bar Revenue */}
                   {show.barRevenue !== null && (
                     <div className="flex flex-col p-3 rounded-md bg-muted/30">
                       <div className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
                         <BarChart className="h-3 w-3" /> Bar Revenue
                       </div>
-                      <div className="text-xl font-semibold">{formatCurrency(show.barRevenue)}</div>
+                      <div className="text-xl font-semibold">
+                        {formatCurrency(show.barRevenue)}
+                      </div>
                     </div>
                   )}
-                  
-                  {show.ticketsRevenue !== null && show.barRevenue !== null && (
-                    <div className="flex flex-col p-3 rounded-md bg-primary/10">
+
+                  {/* Show Quality */}
+                  {show.showQuality && (
+                    <div className="flex flex-col p-3 rounded-md bg-muted/30">
                       <div className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
-                        <DollarSign className="h-3 w-3" /> Total Revenue
+                        <Star className="h-3 w-3" /> Show Quality
                       </div>
                       <div className="text-xl font-semibold">
-                        {formatCurrency(calculateTotalRevenue())}
+                        {show.showQuality}
                       </div>
-                      {show.isFiftyFifty && (
-                        <div className="text-xs text-amber-600 mt-1 font-medium">
-                          50/50 split applied
-                        </div>
-                      )}
                     </div>
                   )}
 
                   {/* Average Consumption Per Person */}
-                  {show.ticketsSold !== null && show.ticketsSold > 0 && show.barRevenue !== null && (
+                  {(show.ticketsSold !== null || show.freeTickets !== null) && show.barRevenue !== null && (
                     <div className="flex flex-col p-3 rounded-md bg-muted/30">
                       <div className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
                         <Coffee className="h-3 w-3" /> Avg. Consumption/Person
@@ -281,26 +265,11 @@ export function ViewShowDialog({
                         {formatCurrency(calculateAverageConsumption())}
                       </div>
                       <div className="text-xs text-muted-foreground mt-1">
-                        Based on {show.ticketsSold} tickets sold
+                        Based on {show.ticketsSold ?? 0} paid + {show.freeTickets ?? 0} free tickets
                       </div>
                     </div>
                   )}
                 </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Show Quality */}
-          {show.showQuality && (
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2 mb-3 text-primary font-medium">
-                  <Star className="h-5 w-5" />
-                  <h3>Quality Rating</h3>
-                </div>
-                <Badge className={`text-sm px-3 py-1 ${getQualityColor(show.showQuality)}`}>
-                  {show.showQuality}
-                </Badge>
               </CardContent>
             </Card>
           )}

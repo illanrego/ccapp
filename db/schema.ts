@@ -41,6 +41,7 @@ export const showsTable = pgTable('shows', {
     barRevenue: decimal('bar_revenue', { precision: 10, scale: 2 }),
     showQuality: text('show_quality'),
     isFiftyFifty: boolean('is_fifty_fifty').default(false), // New field to indicate if revenue is split 50/50
+    freeTickets: integer('free_tickets').default(0), // New field to track free tickets
 });
 
 export type InsertShow = typeof showsTable.$inferInsert;

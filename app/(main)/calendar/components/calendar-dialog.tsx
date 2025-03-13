@@ -39,6 +39,7 @@ interface CalendarDialogProps {
     barRevenue?: number | null;
     showQuality?: string | null;
     isFiftyFifty?: boolean | null;
+    freeTickets?: number | null;
   };
   comics?: (SelectComic & { comicShow?: { comicId: string; showId: number; position?: string | null } })[];
   onClose?: () => void;
@@ -224,6 +225,18 @@ export function CalendarDialog({
                 name="ticketsSold"
                 type="number"
                 defaultValue={show?.ticketsSold || ""}
+                className="col-span-3"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="freeTickets" className="text-right">
+                Free Tickets
+              </Label>
+              <Input
+                id="freeTickets"
+                name="freeTickets"
+                type="number"
+                defaultValue={show?.freeTickets || ""}
                 className="col-span-3"
               />
             </div>

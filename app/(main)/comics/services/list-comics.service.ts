@@ -14,7 +14,7 @@ export async function listComicsService(): Promise<ComicWithAvgTickets[]> {
             class: comicsTable.class,
             time: comicsTable.time,
             avgTicketsSold: sql<number>`COALESCE(AVG(${showsTable.ticketsSold}), 0)`.as('avg_tickets_sold'),
-            avgBarRevenue: sql<number>`COALESCE(AVG(${showsTable.barRevenue}), 0)`.as('avg_bar_revenue')
+            avgBarRevenue: sql<number>`COALESCE(AVG(${showsTable.barRevenue} / NULLIF(${showsTable.ticketsSold} + ${showsTable.freeTickets}, 0)), 0)`.as('avg_bar_revenue_per_person')
         })
         .from(comicsTable)
         .leftJoin(

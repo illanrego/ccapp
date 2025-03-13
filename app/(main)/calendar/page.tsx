@@ -24,6 +24,7 @@ interface ShowWithDateObject {
   barRevenue?: number | null;
   showQuality?: string | null;
   isFiftyFifty?: boolean | null;
+  freeTickets?: number | null;
 }
 
 export default function CalendarPage() {
@@ -294,6 +295,12 @@ export default function CalendarPage() {
                                     {show.startTime && (
                                       <div className="text-sm text-muted-foreground">
                                         Start time: {show.startTime}
+                                      </div>
+                                    )}
+                                    {show.ticketsSold !== null && (
+                                      <div className="text-sm text-muted-foreground">
+                                        {show.ticketsSold} tickets sold
+                                        {show.freeTickets ? ` + ${show.freeTickets} free tickets` : ''}
                                       </div>
                                     )}
                                     {eventComics[dateStr]?.[show.id] && (

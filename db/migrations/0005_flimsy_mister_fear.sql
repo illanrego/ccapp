@@ -1,0 +1,1 @@
+ALTER TABLE "shows" ADD COLUMN "free_tickets" integer DEFAULT 0;
