@@ -260,7 +260,6 @@ export default function CalendarPage() {
           return "rgba(255, 0, 0, 0.25)"; // Red
         }
       case 'totalRevenue':
-      case 'profit':
         if (value >= 1601) {
           return "rgba(43, 255, 0, 0.83)"; // Bright fluorescent green
         } else if (value >= 1201) {
@@ -268,6 +267,20 @@ export default function CalendarPage() {
         } else if (value >= 801) {
           return "rgba(255, 153, 0, 0.84)"; // Sunny yellow
         } else if (value >= 401) {
+          return "rgba(240, 0, 0, 0.75)"; // Orange
+        } else {
+          return "rgba(255, 0, 0, 0.25)"; // Red
+        }
+      case 'profit':
+        if (value >= 1251) {
+          return "rgba(0, 255, 149, 0.83)"; // Bright green
+        } else if (value >= 1001) {
+          return "rgba(43, 255, 0, 0.83)"; // Bright fluorescent green
+        } else if (value >= 751) {
+          return "rgba(11, 128, 40, 0.67)"; // Dark green
+        } else if (value >= 501) {
+          return "rgba(255, 153, 0, 0.84)"; // Sunny yellow
+        } else if (value >= 251) {
           return "rgba(240, 0, 0, 0.75)"; // Orange
         } else {
           return "rgba(255, 0, 0, 0.25)"; // Red
@@ -492,7 +505,23 @@ export default function CalendarPage() {
                             <div 
                               key={show.id} 
                               className="border border-border rounded-md p-2 cursor-pointer hover:bg-muted/50 transition-colors"
-                              style={{ backgroundColor: selectedMetric === 'comics' ? 'transparent' : getMetricColor(getMetricValue(show)) }}
+                              style={{ 
+                                backgroundColor: selectedMetric === 'comics' 
+                                  ? 'transparent' 
+                                  : (() => {
+                                      const today = new Date();
+                                      today.setHours(23, 59, 59, 999);
+                                      const showDate = new Date(show.date);
+                                      
+                                      // If the show is in the future, make it transparent
+                                      if (showDate > today) {
+                                        return 'transparent';
+                                      }
+                                      
+                                      // Otherwise use the normal color logic
+                                      return getMetricColor(getMetricValue(show));
+                                    })()
+                              }}
                               onClick={(e) => {
                                 e.stopPropagation();
                                 setSelectedDate(date);
