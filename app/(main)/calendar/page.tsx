@@ -12,7 +12,7 @@ import { deleteShow } from "./actions/delete-dia.action";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { SelectComic } from "@/db/schema";
-import { Beer, Ticket, DollarSign, BarChart3, TrendingUp } from "lucide-react";
+import { Beer, Ticket, DollarSign, TrendingUp } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface ShowWithDateObject {
@@ -28,7 +28,7 @@ interface ShowWithDateObject {
   freeTickets?: number | null;
 }
 
-type MetricType = 'tickets' | 'ticketRevenue' | 'barRevenue' | 'totalRevenue';
+type MetricType = 'tickets' | 'ticketRevenue' | 'barRevenue' | 'totalRevenue' | 'profit';
 
 export default function CalendarPage() {
   const [shows, setShows] = useState<Awaited<ReturnType<typeof getShows>>>([]);
@@ -84,15 +84,24 @@ export default function CalendarPage() {
       case 'tickets':
         return show.ticketsSold || 0;
       case 'ticketRevenue':
-        return show.ticketsRevenue || 0;
+        const ticketRevenue = show.ticketsRevenue || 0;
+        // For 50/50 splits, only count 50% of ticket revenue
+        return show.isFiftyFifty ? ticketRevenue * 0.5 : ticketRevenue;
       case 'barRevenue':
         return show.barRevenue || 0;
       case 'totalRevenue':
-        const ticketRevenue = show.ticketsRevenue || 0;
+        const ticketRevenueTotal = show.ticketsRevenue || 0;
         const barRevenue = show.barRevenue || 0;
         // For 50/50 splits, only count 50% of ticket revenue
-        const adjustedTicketRevenue = show.isFiftyFifty ? ticketRevenue * 0.5 : ticketRevenue;
+        const adjustedTicketRevenue = show.isFiftyFifty ? ticketRevenueTotal * 0.5 : ticketRevenueTotal;
         return adjustedTicketRevenue + barRevenue;
+      case 'profit':
+        const ticketRevenueProfit = show.ticketsRevenue || 0;
+        const barRevenueProfit = show.barRevenue || 0;
+        // For 50/50 splits, only count 50% of ticket revenue
+        const adjustedTicketRevenueProfit = show.isFiftyFifty ? ticketRevenueProfit * 0.5 : ticketRevenueProfit;
+        // Profit = 60% of bar revenue + real ticket revenue
+        return (barRevenueProfit * 0.6) + adjustedTicketRevenueProfit;
       default:
         return 0;
     }
@@ -111,7 +120,22 @@ export default function CalendarPage() {
         ];
       case 'ticketRevenue':
       case 'barRevenue':
+        return [
+          { label: 'R$ 0-200', min: 0, max: 200 },
+          { label: 'R$ 201-400', min: 201, max: 400 },
+          { label: 'R$ 401-600', min: 401, max: 600 },
+          { label: 'R$ 601-800', min: 601, max: 800 },
+          { label: 'R$ 801+', min: 801, max: Infinity }
+        ];
       case 'totalRevenue':
+        return [
+          { label: 'R$ 0-400', min: 0, max: 400 },
+          { label: 'R$ 401-800', min: 401, max: 800 },
+          { label: 'R$ 801-1200', min: 801, max: 1200 },
+          { label: 'R$ 1201-1600', min: 1201, max: 1600 },
+          { label: 'R$ 1601+', min: 1601, max: Infinity }
+        ];
+      case 'profit':
         return [
           { label: 'R$ 0-400', min: 0, max: 400 },
           { label: 'R$ 401-800', min: 401, max: 800 },
@@ -166,18 +190,19 @@ export default function CalendarPage() {
         }
       case 'ticketRevenue':
       case 'barRevenue':
-        if (value >= 1601) {
+        if (value >= 801) {
           return "rgba(43, 255, 0, 0.83)"; // Bright fluorescent green
-        } else if (value >= 1201) {
+        } else if (value >= 601) {
           return "rgba(11, 128, 40, 0.67)"; // Dark green
-        } else if (value >= 801) {
-          return "rgba(255, 153, 0, 0.84)"; // Sunny yellow
         } else if (value >= 401) {
+          return "rgba(255, 153, 0, 0.84)"; // Sunny yellow
+        } else if (value >= 201) {
           return "rgba(240, 0, 0, 0.75)"; // Orange
         } else {
           return "rgba(255, 0, 0, 0.25)"; // Red
         }
       case 'totalRevenue':
+      case 'profit':
         if (value >= 1601) {
           return "rgba(43, 255, 0, 0.83)"; // Bright fluorescent green
         } else if (value >= 1201) {
@@ -205,6 +230,8 @@ export default function CalendarPage() {
         return 'Bar Revenue';
       case 'totalRevenue':
         return 'Total Revenue';
+      case 'profit':
+        return 'Profit';
       default:
         return 'Ticket Sales';
     }
@@ -220,6 +247,8 @@ export default function CalendarPage() {
       case 'barRevenue':
         return Beer;
       case 'totalRevenue':
+        return TrendingUp;
+      case 'profit':
         return TrendingUp;
       default:
         return Ticket;
@@ -306,6 +335,8 @@ export default function CalendarPage() {
       case 'barRevenue':
       case 'totalRevenue':
         return `R$ ${sum.toFixed(2)}`;
+      case 'profit':
+        return `R$ ${sum.toFixed(2)}`;
       default:
         return `${sum}`;
     }
@@ -330,7 +361,7 @@ export default function CalendarPage() {
           <div className="flex flex-col items-center gap-4">
             <span className="text-sm font-medium text-muted-foreground">View by:</span>
             <Tabs value={selectedMetric} onValueChange={(value) => setSelectedMetric(value as MetricType)} className="w-full max-w-sm sm:max-w-md">
-              <TabsList className="grid w-full grid-cols-4">
+              <TabsList className="grid w-full grid-cols-5">
                 <TabsTrigger value="tickets" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
                   <Ticket className="h-3 w-3 sm:h-4 sm:w-4" />
                   Tickets
@@ -346,6 +377,10 @@ export default function CalendarPage() {
                 <TabsTrigger value="totalRevenue" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
                   <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4" />
                   Total
+                </TabsTrigger>
+                <TabsTrigger value="profit" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                  <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4" />
+                  Profit
                 </TabsTrigger>
               </TabsList>
             </Tabs>
