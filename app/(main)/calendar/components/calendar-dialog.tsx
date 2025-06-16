@@ -175,7 +175,7 @@ export function CalendarDialog({
                 id="startTime"
                 name="startTime"
                 type="time"
-                defaultValue={show?.startTime || ""}
+                defaultValue={show?.startTime || "20:30"}
                 className="col-span-3"
               />
             </div>
@@ -268,7 +268,7 @@ export function CalendarDialog({
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="showQuality" className="text-right">
-                Show Quality
+                Observations
               </Label>
               <Input
                 id="showQuality"

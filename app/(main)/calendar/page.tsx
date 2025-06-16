@@ -65,13 +65,17 @@ export default function CalendarPage() {
     return acc;
   }, {} as Record<string, ShowWithDateObject[]>);
 
-  // Filter shows for the current month
-  const currentMonthShows = shows.filter(({ show }) => {
-    const [year, month] = show.date.split('T')[0].split('-').map(Number);
-    const showDate = new Date(year, month - 1, 1);
+  // Filter shows for the current month that have already happened (up to today)
+  const currentMonthShowsPast = shows.filter(({ show }) => {
+    const [year, month, day] = show.date.split('T')[0].split('-').map(Number);
+    const showDate = new Date(year, month - 1, day);
     const currentMonthDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
+    const nextMonthDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1);
+    const today = new Date();
+    today.setHours(23, 59, 59, 999); // End of today
     
-    return showDate.getTime() === currentMonthDate.getTime();
+    // Check if show is in current month AND has already happened
+    return showDate >= currentMonthDate && showDate < nextMonthDate && showDate <= today;
   });
 
   // Function to get metric value based on selected metric
@@ -121,7 +125,7 @@ export default function CalendarPage() {
   };
 
   // Calculate shows count for each range based on selected metric
-  const metricRangeCounts = currentMonthShows.reduce((acc, { show }) => {
+  const metricRangeCounts = currentMonthShowsPast.reduce((acc, { show }) => {
     // Create a proper ShowWithDateObject from the database show
     const [year, month, day] = show.date.split('T')[0].split('-').map(Number);
     const showDate = new Date(year, month - 1, day);
@@ -162,13 +166,13 @@ export default function CalendarPage() {
         }
       case 'ticketRevenue':
       case 'barRevenue':
-        if (value >= 801) {
+        if (value >= 1601) {
           return "rgba(43, 255, 0, 0.83)"; // Bright fluorescent green
-        } else if (value >= 601) {
+        } else if (value >= 1201) {
           return "rgba(11, 128, 40, 0.67)"; // Dark green
-        } else if (value >= 401) {
+        } else if (value >= 801) {
           return "rgba(255, 153, 0, 0.84)"; // Sunny yellow
-        } else if (value >= 201) {
+        } else if (value >= 401) {
           return "rgba(240, 0, 0, 0.75)"; // Orange
         } else {
           return "rgba(255, 0, 0, 0.25)"; // Red
@@ -214,7 +218,7 @@ export default function CalendarPage() {
       case 'ticketRevenue':
         return DollarSign;
       case 'barRevenue':
-        return BarChart3;
+        return Beer;
       case 'totalRevenue':
         return TrendingUp;
       default:
@@ -279,7 +283,7 @@ export default function CalendarPage() {
   };
 
   // Calculate total sum for the selected metric in current month
-  const totalMetricSum = currentMonthShows.reduce((total, { show }) => {
+  const totalMetricSum = currentMonthShowsPast.reduce((total, { show }) => {
     // Create a proper ShowWithDateObject from the database show
     const [year, month, day] = show.date.split('T')[0].split('-').map(Number);
     const showDate = new Date(year, month - 1, day);
@@ -336,7 +340,7 @@ export default function CalendarPage() {
                   Revenue
                 </TabsTrigger>
                 <TabsTrigger value="barRevenue" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
-                  <BarChart3 className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <Beer className="h-3 w-3 sm:h-4 sm:w-4" />
                   Bar
                 </TabsTrigger>
                 <TabsTrigger value="totalRevenue" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">

@@ -247,7 +247,7 @@ export function ViewShowDialog({
                   {show.showQuality && (
                     <div className="flex flex-col p-3 rounded-md bg-muted/30">
                       <div className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
-                        <Star className="h-3 w-3" /> Show Quality
+                        <Star className="h-3 w-3" /> Observations
                       </div>
                       <div className="text-xl font-semibold">
                         {show.showQuality}
