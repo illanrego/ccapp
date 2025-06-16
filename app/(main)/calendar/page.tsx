@@ -12,7 +12,8 @@ import { deleteShow } from "./actions/delete-dia.action";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { SelectComic } from "@/db/schema";
-import { Beer, Ticket } from "lucide-react";
+import { Beer, Ticket, DollarSign, BarChart3, TrendingUp } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface ShowWithDateObject {
   id: number;
@@ -27,6 +28,8 @@ interface ShowWithDateObject {
   freeTickets?: number | null;
 }
 
+type MetricType = 'tickets' | 'ticketRevenue' | 'barRevenue' | 'totalRevenue';
+
 export default function CalendarPage() {
   const [shows, setShows] = useState<Awaited<ReturnType<typeof getShows>>>([]);
   const [selectedDate, setSelectedDate] = useState<Date>();
@@ -34,6 +37,7 @@ export default function CalendarPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
+  const [selectedMetric, setSelectedMetric] = useState<MetricType>('tickets');
 
   useEffect(() => {
     getShows().then(setShows);
@@ -70,37 +74,155 @@ export default function CalendarPage() {
     return showDate.getTime() === currentMonthDate.getTime();
   });
 
-  // Calculate shows count for each ticket range (only for current month)
-  const ticketRangeCounts = currentMonthShows.reduce((acc, { show }) => {
-    const ticketsSold = show.ticketsSold || 0;
-    if (ticketsSold >= 41) {
-      acc['41+'] = (acc['41+'] || 0) + 1;
-    } else if (ticketsSold >= 31) {
-      acc['31-40'] = (acc['31-40'] || 0) + 1;
-    } else if (ticketsSold >= 21) {
-      acc['21-30'] = (acc['21-30'] || 0) + 1;
-    } else if (ticketsSold >= 11) {
-      acc['11-20'] = (acc['11-20'] || 0) + 1;
-    } else {
-      acc['0-10'] = (acc['0-10'] || 0) + 1;
+  // Function to get metric value based on selected metric
+  const getMetricValue = (show: ShowWithDateObject) => {
+    switch (selectedMetric) {
+      case 'tickets':
+        return show.ticketsSold || 0;
+      case 'ticketRevenue':
+        return show.ticketsRevenue || 0;
+      case 'barRevenue':
+        return show.barRevenue || 0;
+      case 'totalRevenue':
+        const ticketRevenue = show.ticketsRevenue || 0;
+        const barRevenue = show.barRevenue || 0;
+        // For 50/50 splits, only count 50% of ticket revenue
+        const adjustedTicketRevenue = show.isFiftyFifty ? ticketRevenue * 0.5 : ticketRevenue;
+        return adjustedTicketRevenue + barRevenue;
+      default:
+        return 0;
     }
+  };
+
+  // Function to get ranges based on selected metric
+  const getMetricRanges = () => {
+    switch (selectedMetric) {
+      case 'tickets':
+        return [
+          { label: '0-10', min: 0, max: 10 },
+          { label: '11-20', min: 11, max: 20 },
+          { label: '21-30', min: 21, max: 30 },
+          { label: '31-40', min: 31, max: 40 },
+          { label: '41+', min: 41, max: Infinity }
+        ];
+      case 'ticketRevenue':
+      case 'barRevenue':
+      case 'totalRevenue':
+        return [
+          { label: 'R$ 0-400', min: 0, max: 400 },
+          { label: 'R$ 401-800', min: 401, max: 800 },
+          { label: 'R$ 801-1200', min: 801, max: 1200 },
+          { label: 'R$ 1201-1600', min: 1201, max: 1600 },
+          { label: 'R$ 1601+', min: 1601, max: Infinity }
+        ];
+      default:
+        return [];
+    }
+  };
+
+  // Calculate shows count for each range based on selected metric
+  const metricRangeCounts = currentMonthShows.reduce((acc, { show }) => {
+    // Create a proper ShowWithDateObject from the database show
+    const [year, month, day] = show.date.split('T')[0].split('-').map(Number);
+    const showDate = new Date(year, month - 1, day);
+    const showWithDate: ShowWithDateObject = {
+      ...show,
+      date: showDate,
+      ticketsRevenue: Number(show.ticketsRevenue),
+      barRevenue: Number(show.barRevenue),
+    };
+    
+    const value = getMetricValue(showWithDate);
+    const ranges = getMetricRanges();
+    
+    for (const range of ranges) {
+      if (value >= range.min && value <= range.max) {
+        acc[range.label] = (acc[range.label] || 0) + 1;
+        break;
+      }
+    }
+    
     return acc;
   }, {} as Record<string, number>);
 
-  // Function to get background color based on ticket sales
-  const getTicketSalesColor = (ticketsSold: number) => {
-    if (ticketsSold >= 41) {
-      return "rgba(43, 255, 0, 0.83)"; // Bright fluorescent green (Spring Green)
-    } else if (ticketsSold >= 31) {
-      return "rgba(11, 128, 40, 0.67)"; // Dark green
-    } else if (ticketsSold >= 21) {
-      return "rgba(255, 153, 0, 0.84)"; // Sunny yellow
-    } else if (ticketsSold >= 11) {
-      return "rgba(240, 0, 0, 0.75)"; // Orange
-    } else {
-      return "rgba(255, 0, 0, 0.25)"; // Red
+  // Function to get background color based on metric value
+  const getMetricColor = (value: number) => {
+    switch (selectedMetric) {
+      case 'tickets':
+        if (value >= 41) {
+          return "rgba(43, 255, 0, 0.83)"; // Bright fluorescent green
+        } else if (value >= 31) {
+          return "rgba(11, 128, 40, 0.67)"; // Dark green
+        } else if (value >= 21) {
+          return "rgba(255, 153, 0, 0.84)"; // Sunny yellow
+        } else if (value >= 11) {
+          return "rgba(240, 0, 0, 0.75)"; // Orange
+        } else {
+          return "rgba(255, 0, 0, 0.25)"; // Red
+        }
+      case 'ticketRevenue':
+      case 'barRevenue':
+        if (value >= 801) {
+          return "rgba(43, 255, 0, 0.83)"; // Bright fluorescent green
+        } else if (value >= 601) {
+          return "rgba(11, 128, 40, 0.67)"; // Dark green
+        } else if (value >= 401) {
+          return "rgba(255, 153, 0, 0.84)"; // Sunny yellow
+        } else if (value >= 201) {
+          return "rgba(240, 0, 0, 0.75)"; // Orange
+        } else {
+          return "rgba(255, 0, 0, 0.25)"; // Red
+        }
+      case 'totalRevenue':
+        if (value >= 1601) {
+          return "rgba(43, 255, 0, 0.83)"; // Bright fluorescent green
+        } else if (value >= 1201) {
+          return "rgba(11, 128, 40, 0.67)"; // Dark green
+        } else if (value >= 801) {
+          return "rgba(255, 153, 0, 0.84)"; // Sunny yellow
+        } else if (value >= 401) {
+          return "rgba(240, 0, 0, 0.75)"; // Orange
+        } else {
+          return "rgba(255, 0, 0, 0.25)"; // Red
+        }
+      default:
+        return "rgba(255, 0, 0, 0.25)"; // Default red
     }
   };
+
+  // Function to get metric display name
+  const getMetricDisplayName = () => {
+    switch (selectedMetric) {
+      case 'tickets':
+        return 'Ticket Sales';
+      case 'ticketRevenue':
+        return 'Ticket Revenue';
+      case 'barRevenue':
+        return 'Bar Revenue';
+      case 'totalRevenue':
+        return 'Total Revenue';
+      default:
+        return 'Ticket Sales';
+    }
+  };
+
+  // Function to get metric icon
+  const getMetricIcon = () => {
+    switch (selectedMetric) {
+      case 'tickets':
+        return Ticket;
+      case 'ticketRevenue':
+        return DollarSign;
+      case 'barRevenue':
+        return BarChart3;
+      case 'totalRevenue':
+        return TrendingUp;
+      default:
+        return Ticket;
+    }
+  };
+
+  const MetricIcon = getMetricIcon();
 
   // Create a map of dates to comics for easier lookup
   const eventComics = shows.reduce((acc, { show, comics }) => {
@@ -158,46 +280,53 @@ export default function CalendarPage() {
 
   return (
     <div className="container max-w-[2000px] py-10">
-      <div className="flex flex-col gap-6 mb-8">
+      <div className="flex flex-col items-center gap-6 mb-8">
         <div className="flex items-center justify-center">
           <h1 className="text-6xl font-bold">Calendar</h1>
         </div>
-        <div className="flex flex-col items-center gap-2">
-          <span className="text-3xl font-medium">Ticket Sales</span>
+        <div className="flex flex-col items-center gap-4">
+          <span className="text-3xl font-medium">{getMetricDisplayName()}</span>
           <span className="text-lg text-muted-foreground">
             {currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
           </span>
+          
+          {/* Metric selector tabs */}
+          <div className="flex flex-col items-center gap-4">
+            <span className="text-sm font-medium text-muted-foreground">View by:</span>
+            <Tabs value={selectedMetric} onValueChange={(value) => setSelectedMetric(value as MetricType)} className="w-full max-w-sm sm:max-w-md">
+              <TabsList className="grid w-full grid-cols-4">
+                <TabsTrigger value="tickets" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                  <Ticket className="h-3 w-3 sm:h-4 sm:w-4" />
+                  Tickets
+                </TabsTrigger>
+                <TabsTrigger value="ticketRevenue" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                  <DollarSign className="h-3 w-3 sm:h-4 sm:w-4" />
+                  Revenue
+                </TabsTrigger>
+                <TabsTrigger value="barRevenue" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                  <BarChart3 className="h-3 w-3 sm:h-4 sm:w-4" />
+                  Bar
+                </TabsTrigger>
+                <TabsTrigger value="totalRevenue" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                  <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4" />
+                  Total
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
+          
           <div className="flex items-center gap-6 flex-wrap justify-center">
-            <div className="flex items-center gap-2">
-              <div className="w-12 h-12 rounded-md flex items-center justify-center text-xl font-medium" style={{ backgroundColor: "rgba(255, 0, 0, 0.25)" }}>
-                {ticketRangeCounts['0-10'] || 0}
+            {getMetricRanges().map((range) => (
+              <div key={range.label} className="flex items-center gap-2">
+                <div 
+                  className="w-12 h-12 rounded-md flex items-center justify-center text-xl font-medium" 
+                  style={{ backgroundColor: getMetricColor(range.min) }}
+                >
+                  {metricRangeCounts[range.label] || 0}
+                </div>
+                <span>{range.label}</span>
               </div>
-              <span>0-10</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-12 h-12 rounded-md flex items-center justify-center text-xl font-medium" style={{ backgroundColor: "rgba(240, 0, 0, 0.75)" }}>
-                {ticketRangeCounts['11-20'] || 0}
-              </div>
-              <span>11-20</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-12 h-12 rounded-md flex items-center justify-center text-xl font-medium" style={{ backgroundColor: "rgba(255, 153, 0, 0.84)" }}>
-                {ticketRangeCounts['21-30'] || 0}
-              </div>
-              <span>21-30</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-12 h-12 rounded-md flex items-center justify-center text-xl font-medium" style={{ backgroundColor: "rgba(11, 128, 40, 0.67)" }}>
-                {ticketRangeCounts['31-40'] || 0}
-              </div>
-              <span>31-40</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-12 h-12 rounded-md flex items-center justify-center text-xl font-medium" style={{ backgroundColor: "rgba(11, 200, 0, 0.71)" }}>
-                {ticketRangeCounts['41+'] || 0}
-              </div>
-              <span>41+</span>
-            </div>
+            ))}
           </div>
         </div>
       </div>
@@ -244,7 +373,7 @@ export default function CalendarPage() {
                             <div 
                               key={show.id} 
                               className="border border-border rounded-md p-2 cursor-pointer hover:bg-muted/50 transition-colors"
-                              style={{ backgroundColor: getTicketSalesColor(show.ticketsSold || 0) }}
+                              style={{ backgroundColor: getMetricColor(getMetricValue(show)) }}
                               onClick={(e) => {
                                 e.stopPropagation();
                                 setSelectedDate(date);
@@ -260,10 +389,13 @@ export default function CalendarPage() {
                                           <div className="text-[16px] truncate mb-1 font-medium text-white">
                                             {show.showName}
                                           </div>
-                                          {show.ticketsSold !== null && (
+                                          {(getMetricValue(show) > 0 || selectedMetric === 'totalRevenue') && (
                                             <div className="flex items-center justify-center gap-2 text-base font-medium mt-1 text-white">
-                                              <Ticket className="h-4 w-4" />
-                                              {show.ticketsSold}
+                                              <MetricIcon className="h-4 w-4" />
+                                              {selectedMetric === 'tickets' 
+                                                ? getMetricValue(show)
+                                                : `R$ ${getMetricValue(show).toFixed(2)}`
+                                              }
                                             </div>
                                           )}
                                           {show.barRevenue && getBeerIcons(show.barRevenue) > 0 && (
@@ -311,10 +443,15 @@ export default function CalendarPage() {
                                         Start time: {show.startTime}
                                       </div>
                                     )}
-                                    {show.ticketsSold !== null && (
+                                    {(getMetricValue(show) > 0 || selectedMetric === 'totalRevenue') && (
                                       <div className="text-sm text-muted-foreground">
-                                        {show.ticketsSold} tickets sold
-                                        {show.freeTickets ? ` + ${show.freeTickets} free tickets` : ''}
+                                        {selectedMetric === 'tickets' 
+                                          ? `${getMetricValue(show)} tickets sold`
+                                          : selectedMetric === 'totalRevenue'
+                                          ? `R$ ${getMetricValue(show).toFixed(2)} total revenue${show.isFiftyFifty ? ' (50/50 split applied)' : ''}`
+                                          : `R$ ${getMetricValue(show).toFixed(2)} ${selectedMetric === 'ticketRevenue' ? 'ticket revenue' : 'bar revenue'}`
+                                        }
+                                        {show.freeTickets && selectedMetric === 'tickets' ? ` + ${show.freeTickets} free tickets` : ''}
                                       </div>
                                     )}
                                     {eventComics[dateStr]?.[show.id] && (
