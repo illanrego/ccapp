@@ -12,7 +12,7 @@ import { deleteShow } from "./actions/delete-dia.action";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { SelectComic } from "@/db/schema";
-import { Beer, Ticket, DollarSign, TrendingUp } from "lucide-react";
+import { Beer, Ticket, DollarSign, TrendingUp, Users } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface ShowWithDateObject {
@@ -28,7 +28,7 @@ interface ShowWithDateObject {
   freeTickets?: number | null;
 }
 
-type MetricType = 'tickets' | 'ticketRevenue' | 'barRevenue' | 'totalRevenue' | 'profit';
+type MetricType = 'tickets' | 'ticketRevenue' | 'barRevenue' | 'totalRevenue' | 'profit' | 'comics';
 
 export default function CalendarPage() {
   const [shows, setShows] = useState<Awaited<ReturnType<typeof getShows>>>([]);
@@ -107,6 +107,49 @@ export default function CalendarPage() {
     }
   };
 
+  // Function to get metric icon
+  const getMetricIcon = () => {
+    switch (selectedMetric) {
+      case 'tickets':
+        return Ticket;
+      case 'ticketRevenue':
+        return DollarSign;
+      case 'barRevenue':
+        return Beer;
+      case 'totalRevenue':
+        return TrendingUp;
+      case 'profit':
+        return TrendingUp;
+      case 'comics':
+        return Users;
+      default:
+        return Ticket;
+    }
+  };
+
+  const MetricIcon = getMetricIcon();
+
+  // Create a map of dates to comics for easier lookup
+  const eventComics = shows.reduce((acc, { show, comics }) => {
+    const [year, month, day] = show.date.split('T')[0].split('-').map(Number);
+    const date = new Date(year, month - 1, day);
+    const dateStr = date.toISOString().split('T')[0];
+    
+    if (!acc[dateStr]) {
+      acc[dateStr] = {};
+    }
+    
+    acc[dateStr][show.id] = comics || [];
+    return acc;
+  }, {} as Record<string, Record<number, (SelectComic & { comicShow?: { comicId: string; showId: number; position?: string | null } })[]>>);
+
+  // Function to get comics count for a show
+  const getComicsCount = (show: ShowWithDateObject) => {
+    const dateStr = show.date.toISOString().split('T')[0];
+    const comicsForShow = eventComics[dateStr]?.[show.id] || [];
+    return comicsForShow.length;
+  };
+
   // Function to get ranges based on selected metric
   const getMetricRanges = () => {
     switch (selectedMetric) {
@@ -137,11 +180,20 @@ export default function CalendarPage() {
         ];
       case 'profit':
         return [
-          { label: 'R$ 0-400', min: 0, max: 400 },
-          { label: 'R$ 401-800', min: 401, max: 800 },
-          { label: 'R$ 801-1200', min: 801, max: 1200 },
-          { label: 'R$ 1201-1600', min: 1201, max: 1600 },
-          { label: 'R$ 1601+', min: 1601, max: Infinity }
+          { label: 'R$ 0-250', min: 0, max: 250 },
+          { label: 'R$ 251-500', min: 251, max: 500 },
+          { label: 'R$ 501-750', min: 501, max: 750 },
+          { label: 'R$ 751-1000', min: 751, max: 1000 },
+          { label: 'R$ 1001-1250', min: 1001, max: 1250 },
+          { label: 'R$ 1251+', min: 1251, max: Infinity }
+        ];
+      case 'comics':
+        return [
+          { label: '0-5', min: 0, max: 5 },
+          { label: '6-10', min: 6, max: 10 },
+          { label: '11-15', min: 11, max: 15 },
+          { label: '16-20', min: 16, max: 20 },
+          { label: '21+', min: 21, max: Infinity }
         ];
       default:
         return [];
@@ -160,7 +212,13 @@ export default function CalendarPage() {
       barRevenue: Number(show.barRevenue),
     };
     
-    const value = getMetricValue(showWithDate);
+    let value;
+    if (selectedMetric === 'comics') {
+      value = getComicsCount(showWithDate);
+    } else {
+      value = getMetricValue(showWithDate);
+    }
+    
     const ranges = getMetricRanges();
     
     for (const range of ranges) {
@@ -214,6 +272,18 @@ export default function CalendarPage() {
         } else {
           return "rgba(255, 0, 0, 0.25)"; // Red
         }
+      case 'comics':
+        if (value >= 21) {
+          return "rgba(43, 255, 0, 0.83)"; // Bright fluorescent green
+        } else if (value >= 16) {
+          return "rgba(11, 128, 40, 0.67)"; // Dark green
+        } else if (value >= 11) {
+          return "rgba(255, 153, 0, 0.84)"; // Sunny yellow
+        } else if (value >= 6) {
+          return "rgba(240, 0, 0, 0.75)"; // Orange
+        } else {
+          return "rgba(255, 0, 0, 0.25)"; // Red
+        }
       default:
         return "rgba(255, 0, 0, 0.25)"; // Default red
     }
@@ -232,44 +302,12 @@ export default function CalendarPage() {
         return 'Total Revenue';
       case 'profit':
         return 'Profit';
+      case 'comics':
+        return 'Comics';
       default:
         return 'Ticket Sales';
     }
   };
-
-  // Function to get metric icon
-  const getMetricIcon = () => {
-    switch (selectedMetric) {
-      case 'tickets':
-        return Ticket;
-      case 'ticketRevenue':
-        return DollarSign;
-      case 'barRevenue':
-        return Beer;
-      case 'totalRevenue':
-        return TrendingUp;
-      case 'profit':
-        return TrendingUp;
-      default:
-        return Ticket;
-    }
-  };
-
-  const MetricIcon = getMetricIcon();
-
-  // Create a map of dates to comics for easier lookup
-  const eventComics = shows.reduce((acc, { show, comics }) => {
-    const [year, month, day] = show.date.split('T')[0].split('-').map(Number);
-    const date = new Date(year, month - 1, day);
-    const dateStr = date.toISOString().split('T')[0];
-    
-    if (!acc[dateStr]) {
-      acc[dateStr] = {};
-    }
-    
-    acc[dateStr][show.id] = comics || [];
-    return acc;
-  }, {} as Record<string, Record<number, (SelectComic & { comicShow?: { comicId: string; showId: number; position?: string | null } })[]>>);
 
   // Function to get number of beer icons
   const getBeerIcons = (barRevenue: number | null) => {
@@ -323,7 +361,11 @@ export default function CalendarPage() {
       barRevenue: Number(show.barRevenue),
     };
     
-    return total + getMetricValue(showWithDate);
+    if (selectedMetric === 'comics') {
+      return total + getComicsCount(showWithDate);
+    } else {
+      return total + getMetricValue(showWithDate);
+    }
   }, 0);
 
   // Function to format the total sum display
@@ -337,6 +379,8 @@ export default function CalendarPage() {
         return `R$ ${sum.toFixed(2)}`;
       case 'profit':
         return `R$ ${sum.toFixed(2)}`;
+      case 'comics':
+        return `${sum} comics`;
       default:
         return `${sum}`;
     }
@@ -361,7 +405,7 @@ export default function CalendarPage() {
           <div className="flex flex-col items-center gap-4">
             <span className="text-sm font-medium text-muted-foreground">View by:</span>
             <Tabs value={selectedMetric} onValueChange={(value) => setSelectedMetric(value as MetricType)} className="w-full max-w-sm sm:max-w-md">
-              <TabsList className="grid w-full grid-cols-5">
+              <TabsList className="grid w-full grid-cols-6">
                 <TabsTrigger value="tickets" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
                   <Ticket className="h-3 w-3 sm:h-4 sm:w-4" />
                   Tickets
@@ -381,6 +425,10 @@ export default function CalendarPage() {
                 <TabsTrigger value="profit" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
                   <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4" />
                   Profit
+                </TabsTrigger>
+                <TabsTrigger value="comics" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                  <Users className="h-3 w-3 sm:h-4 sm:w-4" />
+                  Comics
                 </TabsTrigger>
               </TabsList>
             </Tabs>
@@ -460,16 +508,36 @@ export default function CalendarPage() {
                                           <div className="text-[16px] truncate mb-1 font-medium text-white">
                                             {show.showName}
                                           </div>
-                                          {(getMetricValue(show) > 0 || selectedMetric === 'totalRevenue') && (
-                                            <div className="flex items-center justify-center gap-2 text-base font-medium mt-1 text-white">
-                                              <MetricIcon className="h-4 w-4" />
-                                              {selectedMetric === 'tickets' 
-                                                ? getMetricValue(show)
-                                                : `R$ ${getMetricValue(show).toFixed(2)}`
-                                              }
+                                          {selectedMetric === 'comics' ? (
+                                            // Show comics avatars for comics metric
+                                            <div className="flex items-center justify-center gap-1 mt-1">
+                                              {eventComics[dateStr]?.[show.id]?.slice(0, 4).map((comic) => (
+                                                <Avatar key={comic.id} className="w-6 h-6 border border-white">
+                                                  <AvatarImage src={comic.picUrl || undefined} alt={comic.name} />
+                                                  <AvatarFallback className="text-[8px]">
+                                                    {comic.name.split(' ').map((n) => n[0]).join('')}
+                                                  </AvatarFallback>
+                                                </Avatar>
+                                              ))}
+                                              {eventComics[dateStr]?.[show.id]?.length > 4 && (
+                                                <div className="text-[10px] font-medium text-white">
+                                                  +{eventComics[dateStr][show.id].length - 4}
+                                                </div>
+                                              )}
                                             </div>
+                                          ) : (
+                                            // Show regular metric display for other metrics
+                                            (getMetricValue(show) > 0 || selectedMetric === 'totalRevenue') && (
+                                              <div className="flex items-center justify-center gap-2 text-base font-medium mt-1 text-white">
+                                                <MetricIcon className="h-4 w-4" />
+                                                {selectedMetric === 'tickets' 
+                                                  ? getMetricValue(show)
+                                                  : `R$ ${getMetricValue(show).toFixed(2)}`
+                                                }
+                                              </div>
+                                            )
                                           )}
-                                          {show.barRevenue && getBeerIcons(show.barRevenue) > 0 && (
+                                          {show.barRevenue && getBeerIcons(show.barRevenue) > 0 && selectedMetric !== 'comics' && (
                                             <div className="flex items-center justify-center gap-1 mt-1">
                                               {Array.from({ length: getBeerIcons(show.barRevenue) }).map((_, i) => (
                                                 <Beer 
@@ -482,7 +550,7 @@ export default function CalendarPage() {
                                         </div>
                                       )}
                                     </div>
-                                    {eventComics[dateStr]?.[show.id] && (
+                                    {eventComics[dateStr]?.[show.id] && selectedMetric !== 'comics' && (
                                       <div className="grid grid-cols-3 gap-1 justify-items-center mt-1">
                                         {eventComics[dateStr][show.id].slice(0, 6).map((comic) => (
                                           <Avatar key={comic.id} className="w-10 h-10 border border-border">
@@ -527,7 +595,7 @@ export default function CalendarPage() {
                                     )}
                                     {eventComics[dateStr]?.[show.id] && (
                                       <div className="text-sm text-muted-foreground">
-                                        {eventComics[dateStr][show.id].length} {eventComics[dateStr][show.id].length === 1 ? 'comic' : 'comics'}
+                                        {getComicsCount(show)} comics
                                       </div>
                                     )}
                                     {eventComics[dateStr]?.[show.id] && (
