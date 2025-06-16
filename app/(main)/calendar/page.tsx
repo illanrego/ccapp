@@ -278,6 +278,35 @@ export default function CalendarPage() {
     }
   };
 
+  // Calculate total sum for the selected metric in current month
+  const totalMetricSum = currentMonthShows.reduce((total, { show }) => {
+    // Create a proper ShowWithDateObject from the database show
+    const [year, month, day] = show.date.split('T')[0].split('-').map(Number);
+    const showDate = new Date(year, month - 1, day);
+    const showWithDate: ShowWithDateObject = {
+      ...show,
+      date: showDate,
+      ticketsRevenue: Number(show.ticketsRevenue),
+      barRevenue: Number(show.barRevenue),
+    };
+    
+    return total + getMetricValue(showWithDate);
+  }, 0);
+
+  // Function to format the total sum display
+  const formatTotalSum = (sum: number) => {
+    switch (selectedMetric) {
+      case 'tickets':
+        return `${sum} tickets`;
+      case 'ticketRevenue':
+      case 'barRevenue':
+      case 'totalRevenue':
+        return `R$ ${sum.toFixed(2)}`;
+      default:
+        return `${sum}`;
+    }
+  };
+
   return (
     <div className="container max-w-[2000px] py-10">
       <div className="flex flex-col items-center gap-6 mb-8">
@@ -288,6 +317,9 @@ export default function CalendarPage() {
           <span className="text-3xl font-medium">{getMetricDisplayName()}</span>
           <span className="text-lg text-muted-foreground">
             {currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+          </span>
+          <span className="text-2xl font-bold text-primary">
+            {formatTotalSum(totalMetricSum)}
           </span>
           
           {/* Metric selector tabs */}

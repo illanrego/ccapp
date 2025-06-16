@@ -1,10 +1,22 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { SelectComic } from "@/db/schema";
-import { Users, Pencil, Ticket, Beer } from "lucide-react";
+import { Users, Pencil, Ticket, Beer, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { AddComicDialog } from "./add-comic-dialog";
 import Link from "next/link";
+import { deleteComic } from "../actions/delete-comic.action";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface ComicCardProps {
   comic: SelectComic;
@@ -15,6 +27,21 @@ interface ComicCardProps {
 
 export function ComicCard({ comic, avgTicketsSold, avgBarRevenue, onComicUpdated }: ComicCardProps) {
   const [isHovered, setIsHovered] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDelete = async () => {
+    setIsDeleting(true);
+    try {
+      const formData = new FormData();
+      formData.append('id', comic.id);
+      await deleteComic(formData);
+      onComicUpdated?.();
+    } catch (error) {
+      console.error('Failed to delete comic:', error);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   return (
     <Card 
@@ -69,7 +96,7 @@ export function ComicCard({ comic, avgTicketsSold, avgBarRevenue, onComicUpdated
         </CardContent>
       </Link>
       
-      <div className={`absolute top-2 right-2 transition-opacity duration-200 ${isHovered ? 'opacity-100' : 'opacity-0'}`}>
+      <div className={`absolute top-2 right-2 transition-opacity duration-200 ${isHovered ? 'opacity-100' : 'opacity-0'} flex gap-1`}>
         <AddComicDialog 
           comic={comic} 
           onComicAdded={onComicUpdated}
@@ -79,6 +106,32 @@ export function ComicCard({ comic, avgTicketsSold, avgBarRevenue, onComicUpdated
             <Pencil className="h-4 w-4" />
           </Button>
         </AddComicDialog>
+        
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button size="icon" variant="ghost" className="text-destructive hover:text-destructive">
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Comic</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete &quot;{comic.name}&quot;? This action cannot be undone and will remove all associated data including show history.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction 
+                onClick={handleDelete}
+                disabled={isDeleting}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                {isDeleting ? "Deleting..." : "Delete"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </Card>
   );
