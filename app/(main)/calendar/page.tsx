@@ -492,7 +492,7 @@ export default function CalendarPage() {
                             <div 
                               key={show.id} 
                               className="border border-border rounded-md p-2 cursor-pointer hover:bg-muted/50 transition-colors"
-                              style={{ backgroundColor: getMetricColor(getMetricValue(show)) }}
+                              style={{ backgroundColor: selectedMetric === 'comics' ? 'transparent' : getMetricColor(getMetricValue(show)) }}
                               onClick={(e) => {
                                 e.stopPropagation();
                                 setSelectedDate(date);
@@ -512,12 +512,21 @@ export default function CalendarPage() {
                                             // Show comics avatars for comics metric
                                             <div className="flex items-center justify-center gap-1 mt-1">
                                               {eventComics[dateStr]?.[show.id]?.slice(0, 4).map((comic) => (
-                                                <Avatar key={comic.id} className="w-6 h-6 border border-white">
-                                                  <AvatarImage src={comic.picUrl || undefined} alt={comic.name} />
-                                                  <AvatarFallback className="text-[8px]">
+                                                <div key={comic.id} className="w-6 h-8 rounded-sm overflow-hidden border border-white">
+                                                  <img 
+                                                    src={comic.picUrl || undefined} 
+                                                    alt={comic.name}
+                                                    className="w-full h-full object-cover"
+                                                    onError={(e) => {
+                                                      const target = e.target as HTMLImageElement;
+                                                      target.style.display = 'none';
+                                                      target.nextElementSibling?.classList.remove('hidden');
+                                                    }}
+                                                  />
+                                                  <div className="w-full h-full bg-muted flex items-center justify-center text-[6px] font-medium hidden">
                                                     {comic.name.split(' ').map((n) => n[0]).join('')}
-                                                  </AvatarFallback>
-                                                </Avatar>
+                                                  </div>
+                                                </div>
                                               ))}
                                               {eventComics[dateStr]?.[show.id]?.length > 4 && (
                                                 <div className="text-[10px] font-medium text-white">
