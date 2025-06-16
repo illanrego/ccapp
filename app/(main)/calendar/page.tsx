@@ -33,6 +33,7 @@ export default function CalendarPage() {
   const [selectedShow, setSelectedShow] = useState<ShowWithDateObject>();
   const [isEditing, setIsEditing] = useState(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
 
   useEffect(() => {
     getShows().then(setShows);
@@ -60,8 +61,17 @@ export default function CalendarPage() {
     return acc;
   }, {} as Record<string, ShowWithDateObject[]>);
 
-  // Calculate shows count for each ticket range
-  const ticketRangeCounts = shows.reduce((acc, { show }) => {
+  // Filter shows for the current month
+  const currentMonthShows = shows.filter(({ show }) => {
+    const [year, month] = show.date.split('T')[0].split('-').map(Number);
+    const showDate = new Date(year, month - 1, 1);
+    const currentMonthDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
+    
+    return showDate.getTime() === currentMonthDate.getTime();
+  });
+
+  // Calculate shows count for each ticket range (only for current month)
+  const ticketRangeCounts = currentMonthShows.reduce((acc, { show }) => {
     const ticketsSold = show.ticketsSold || 0;
     if (ticketsSold >= 41) {
       acc['41+'] = (acc['41+'] || 0) + 1;
@@ -80,13 +90,13 @@ export default function CalendarPage() {
   // Function to get background color based on ticket sales
   const getTicketSalesColor = (ticketsSold: number) => {
     if (ticketsSold >= 41) {
-      return "rgba(11, 200, 0, 0.71)"; // Bright fluorescent green (Spring Green)
+      return "rgba(43, 255, 0, 0.83)"; // Bright fluorescent green (Spring Green)
     } else if (ticketsSold >= 31) {
       return "rgba(11, 128, 40, 0.67)"; // Dark green
     } else if (ticketsSold >= 21) {
-      return "rgba(255, 236, 0, 0.25)"; // Sunny yellow
+      return "rgba(255, 153, 0, 0.84)"; // Sunny yellow
     } else if (ticketsSold >= 11) {
-      return "rgba(255, 165, 0, 0.25)"; // Orange
+      return "rgba(240, 0, 0, 0.75)"; // Orange
     } else {
       return "rgba(255, 0, 0, 0.25)"; // Red
     }
@@ -154,6 +164,9 @@ export default function CalendarPage() {
         </div>
         <div className="flex flex-col items-center gap-2">
           <span className="text-3xl font-medium">Ticket Sales</span>
+          <span className="text-lg text-muted-foreground">
+            {currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+          </span>
           <div className="flex items-center gap-6 flex-wrap justify-center">
             <div className="flex items-center gap-2">
               <div className="w-12 h-12 rounded-md flex items-center justify-center text-xl font-medium" style={{ backgroundColor: "rgba(255, 0, 0, 0.25)" }}>
@@ -162,13 +175,13 @@ export default function CalendarPage() {
               <span>0-10</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-12 h-12 rounded-md flex items-center justify-center text-xl font-medium" style={{ backgroundColor: "rgba(255, 165, 0, 0.25)" }}>
+              <div className="w-12 h-12 rounded-md flex items-center justify-center text-xl font-medium" style={{ backgroundColor: "rgba(240, 0, 0, 0.75)" }}>
                 {ticketRangeCounts['11-20'] || 0}
               </div>
               <span>11-20</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-12 h-12 rounded-md flex items-center justify-center text-xl font-medium" style={{ backgroundColor: "rgba(255, 236, 0, 0.25)" }}>
+              <div className="w-12 h-12 rounded-md flex items-center justify-center text-xl font-medium" style={{ backgroundColor: "rgba(255, 153, 0, 0.84)" }}>
                 {ticketRangeCounts['21-30'] || 0}
               </div>
               <span>21-30</span>
@@ -196,6 +209,7 @@ export default function CalendarPage() {
               mode="single"
               selected={selectedDate}
               onSelect={handleDateSelect}
+              onMonthChange={setCurrentMonth}
               modifiers={{
                 event: (date) => {
                   const dateStr = date.toISOString().split('T')[0];
