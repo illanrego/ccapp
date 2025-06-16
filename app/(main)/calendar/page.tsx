@@ -505,14 +505,11 @@ export default function CalendarPage() {
                                     <div className="flex items-center justify-between flex-col">
                                       {show.showName && (
                                         <div className="flex flex-col w-full px-1">
-                                          <div className="text-[16px] truncate mb-1 font-medium text-white">
-                                            {show.showName}
-                                          </div>
                                           {selectedMetric === 'comics' ? (
                                             // Show comics avatars for comics metric
                                             <div className="flex items-center justify-center gap-1 mt-1">
                                               {eventComics[dateStr]?.[show.id]?.slice(0, 4).map((comic) => (
-                                                <div key={comic.id} className="w-6 h-8 rounded-sm overflow-hidden border border-white">
+                                                <div key={comic.id} className="w-18 h-24 rounded-sm overflow-hidden border border-white">
                                                   <img 
                                                     src={comic.picUrl || undefined} 
                                                     alt={comic.name}
@@ -523,28 +520,33 @@ export default function CalendarPage() {
                                                       target.nextElementSibling?.classList.remove('hidden');
                                                     }}
                                                   />
-                                                  <div className="w-full h-full bg-muted flex items-center justify-center text-[6px] font-medium hidden">
+                                                  <div className="w-full h-full bg-muted flex items-center justify-center text-[10px] font-medium hidden">
                                                     {comic.name.split(' ').map((n) => n[0]).join('')}
                                                   </div>
                                                 </div>
                                               ))}
                                               {eventComics[dateStr]?.[show.id]?.length > 4 && (
-                                                <div className="text-[10px] font-medium text-white">
+                                                <div className="text-[12px] font-medium text-white">
                                                   +{eventComics[dateStr][show.id].length - 4}
                                                 </div>
                                               )}
                                             </div>
                                           ) : (
                                             // Show regular metric display for other metrics
-                                            (getMetricValue(show) > 0 || selectedMetric === 'totalRevenue') && (
-                                              <div className="flex items-center justify-center gap-2 text-base font-medium mt-1 text-white">
-                                                <MetricIcon className="h-4 w-4" />
-                                                {selectedMetric === 'tickets' 
-                                                  ? getMetricValue(show)
-                                                  : `R$ ${getMetricValue(show).toFixed(2)}`
-                                                }
+                                            <>
+                                              <div className="text-[16px] truncate mb-1 font-medium text-white">
+                                                {show.showName}
                                               </div>
-                                            )
+                                              {(getMetricValue(show) > 0 || selectedMetric === 'totalRevenue') && (
+                                                <div className="flex items-center justify-center gap-2 text-base font-medium mt-1 text-white">
+                                                  <MetricIcon className="h-4 w-4" />
+                                                  {selectedMetric === 'tickets' 
+                                                    ? getMetricValue(show)
+                                                    : `R$ ${getMetricValue(show).toFixed(2)}`
+                                                  }
+                                                </div>
+                                              )}
+                                            </>
                                           )}
                                           {show.barRevenue && getBeerIcons(show.barRevenue) > 0 && selectedMetric !== 'comics' && (
                                             <div className="flex items-center justify-center gap-1 mt-1">
