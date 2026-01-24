@@ -1,5 +1,5 @@
 import { relations } from 'drizzle-orm';
-import { pgTable, text, timestamp, uuid, serial, integer, date, numeric, pgEnum, primaryKey, decimal, time, boolean } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, uuid, serial, integer, date, pgEnum, primaryKey, decimal, time, boolean } from 'drizzle-orm/pg-core';
 
 export const usersTable = pgTable('users_table', {
     id: text('id').primaryKey(),
@@ -61,20 +61,92 @@ export const comicsTable = pgTable('comics', {
 export type InsertComic = typeof comicsTable.$inferInsert;
 export type SelectComic = typeof comicsTable.$inferSelect;
 
-// Consumiveis (Consumables) table
-export const consumiveisTable = pgTable('consumiveis', {
+// Enum for stock item category
+export const stockCategoryEnum = pgEnum('stock_category', [
+    'cerveja',      // beer
+    'vinho',        // wine
+    'destilado',    // spirits
+    'refrigerante', // soft drinks
+    'agua',         // water
+    'suco',         // juice
+    'energetico',   // energy drinks
+    'petisco',      // snacks
+    'ingrediente',  // ingredients (for cocktails)
+    'descartavel',  // disposables (cups, napkins)
+    'outro'         // other
+]);
+
+// Enum for stock unit types
+export const stockUnitEnum = pgEnum('stock_unit', [
+    'unidade',  // unit (bottles, cans)
+    'ml',       // milliliters
+    'litro',    // liters
+    'kg',       // kilograms
+    'g',        // grams
+    'pacote',   // package
+    'caixa'     // box
+]);
+
+// Enum for transaction types
+export const transactionTypeEnum = pgEnum('transaction_type', [
+    'compra',       // purchase (increases stock)
+    'venda',        // sale (decreases stock) - will be used by bar feature
+    'ajuste',       // manual adjustment
+    'perda',        // waste/loss
+    'transferencia' // transfer
+]);
+
+// Stock items table (enhanced consumiveis)
+export const stockItemsTable = pgTable('stock_items', {
     id: serial('id').primaryKey(),
-    item: text('item').notNull(),
-    type: text('type'),
-    quantity: integer('quantity'),
-    lastBuy: date('last_buy'),
-    cost: numeric('cost'),
-    value: numeric('value'),
-    // Revenue margin will be calculated in the application logic
+    name: text('name').notNull(),
+    category: stockCategoryEnum('category').notNull(),
+    unit: stockUnitEnum('unit').notNull().default('unidade'),
+    currentQuantity: decimal('current_quantity', { precision: 10, scale: 2 }).notNull().default('0'),
+    minQuantity: decimal('min_quantity', { precision: 10, scale: 2 }).default('0'), // Alert threshold
+    costPrice: decimal('cost_price', { precision: 10, scale: 2 }).notNull(), // Purchase cost per unit
+    salePrice: decimal('sale_price', { precision: 10, scale: 2 }).notNull(), // Sale price per unit
+    supplier: text('supplier'),
+    barcode: text('barcode'),
+    isActive: boolean('is_active').default(true).notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
-export type InsertConsumivel = typeof consumiveisTable.$inferInsert;
-export type SelectConsumivel = typeof consumiveisTable.$inferSelect;
+export type InsertStockItem = typeof stockItemsTable.$inferInsert;
+export type SelectStockItem = typeof stockItemsTable.$inferSelect;
+
+// Stock transactions table (for tracking all stock movements)
+export const stockTransactionsTable = pgTable('stock_transactions', {
+    id: serial('id').primaryKey(),
+    itemId: integer('item_id').notNull().references(() => stockItemsTable.id, { onDelete: 'cascade' }),
+    type: transactionTypeEnum('type').notNull(),
+    quantity: decimal('quantity', { precision: 10, scale: 2 }).notNull(), // Positive for in, negative for out
+    unitCost: decimal('unit_cost', { precision: 10, scale: 2 }), // Cost at time of transaction
+    totalCost: decimal('total_cost', { precision: 10, scale: 2 }), // Total cost of transaction
+    showId: integer('show_id').references(() => showsTable.id, { onDelete: 'set null' }), // Link to show for bar sales
+    notes: text('notes'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export type InsertStockTransaction = typeof stockTransactionsTable.$inferInsert;
+export type SelectStockTransaction = typeof stockTransactionsTable.$inferSelect;
+
+// Relations for stock
+export const stockItemsRelations = relations(stockItemsTable, ({ many }) => ({
+    transactions: many(stockTransactionsTable),
+}));
+
+export const stockTransactionsRelations = relations(stockTransactionsTable, ({ one }) => ({
+    item: one(stockItemsTable, {
+        fields: [stockTransactionsTable.itemId],
+        references: [stockItemsTable.id],
+    }),
+    show: one(showsTable, {
+        fields: [stockTransactionsTable.showId],
+        references: [showsTable.id],
+    }),
+}));
 
 // Junction table for Comics and Shows
 export const comicsShowsTable = pgTable('comics_shows', {
