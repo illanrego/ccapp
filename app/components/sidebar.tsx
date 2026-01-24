@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Calendar, Home, Users, Package, Beer, Menu } from "lucide-react"
+import { Calendar, Home, Users, Package, Beer, Menu, DollarSign } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
@@ -33,6 +33,11 @@ const routes = [
     label: "Bar",
     icon: Beer,
     href: "/bar",
+  },
+  {
+    label: "Financeiro",
+    icon: DollarSign,
+    href: "/financeiro",
   },
 ]
 

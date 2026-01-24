@@ -135,6 +135,7 @@ export type SelectStockTransaction = typeof stockTransactionsTable.$inferSelect;
 // Relations for stock
 export const stockItemsRelations = relations(stockItemsTable, ({ many }) => ({
     transactions: many(stockTransactionsTable),
+    comandaItems: many(comandaItemsTable),
 }));
 
 export const stockTransactionsRelations = relations(stockTransactionsTable, ({ one }) => ({
@@ -147,6 +148,94 @@ export const stockTransactionsRelations = relations(stockTransactionsTable, ({ o
         references: [showsTable.id],
     }),
 }));
+
+// ============== BAR FEATURE ==============
+
+// Enum for bar session status
+export const barSessionStatusEnum = pgEnum('bar_session_status', ['aberto', 'fechado']);
+
+// Enum for comanda status
+export const comandaStatusEnum = pgEnum('comanda_status', ['disponivel', 'aberta', 'paga']);
+
+// Enum for payment methods
+export const paymentMethodEnum = pgEnum('payment_method', ['dinheiro', 'cartao', 'pix']);
+
+// Bar sessions table - one per show
+export const barSessionsTable = pgTable('bar_sessions', {
+    id: serial('id').primaryKey(),
+    showId: integer('show_id').notNull().references(() => showsTable.id, { onDelete: 'cascade' }),
+    status: barSessionStatusEnum('status').notNull().default('aberto'),
+    totalRevenue: decimal('total_revenue', { precision: 10, scale: 2 }).default('0'),
+    totalCost: decimal('total_cost', { precision: 10, scale: 2 }).default('0'),
+    openedAt: timestamp('opened_at').defaultNow().notNull(),
+    closedAt: timestamp('closed_at'),
+});
+
+export type InsertBarSession = typeof barSessionsTable.$inferInsert;
+export type SelectBarSession = typeof barSessionsTable.$inferSelect;
+
+// Comandas table - 50 per session
+export const comandasTable = pgTable('comandas', {
+    id: serial('id').primaryKey(),
+    sessionId: integer('session_id').notNull().references(() => barSessionsTable.id, { onDelete: 'cascade' }),
+    number: integer('number').notNull(), // 1-50
+    clientName: text('client_name'), // Optional
+    status: comandaStatusEnum('status').notNull().default('disponivel'),
+    subtotal: decimal('subtotal', { precision: 10, scale: 2 }).default('0'),
+    discount: decimal('discount', { precision: 10, scale: 2 }).default('0'), // Discount amount
+    total: decimal('total', { precision: 10, scale: 2 }).default('0'),
+    paymentMethod: paymentMethodEnum('payment_method'),
+    openedAt: timestamp('opened_at'),
+    closedAt: timestamp('closed_at'),
+});
+
+export type InsertComanda = typeof comandasTable.$inferInsert;
+export type SelectComanda = typeof comandasTable.$inferSelect;
+
+// Comanda items table - items ordered in a comanda
+export const comandaItemsTable = pgTable('comanda_items', {
+    id: serial('id').primaryKey(),
+    comandaId: integer('comanda_id').notNull().references(() => comandasTable.id, { onDelete: 'cascade' }),
+    stockItemId: integer('stock_item_id').notNull().references(() => stockItemsTable.id, { onDelete: 'restrict' }),
+    quantity: integer('quantity').notNull().default(1),
+    unitPrice: decimal('unit_price', { precision: 10, scale: 2 }).notNull(), // Price at time of sale
+    unitCost: decimal('unit_cost', { precision: 10, scale: 2 }).notNull(), // Cost at time of sale
+    total: decimal('total', { precision: 10, scale: 2 }).notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export type InsertComandaItem = typeof comandaItemsTable.$inferInsert;
+export type SelectComandaItem = typeof comandaItemsTable.$inferSelect;
+
+// Bar relations
+export const barSessionsRelations = relations(barSessionsTable, ({ one, many }) => ({
+    show: one(showsTable, {
+        fields: [barSessionsTable.showId],
+        references: [showsTable.id],
+    }),
+    comandas: many(comandasTable),
+}));
+
+export const comandasRelations = relations(comandasTable, ({ one, many }) => ({
+    session: one(barSessionsTable, {
+        fields: [comandasTable.sessionId],
+        references: [barSessionsTable.id],
+    }),
+    items: many(comandaItemsTable),
+}));
+
+export const comandaItemsRelations = relations(comandaItemsTable, ({ one }) => ({
+    comanda: one(comandasTable, {
+        fields: [comandaItemsTable.comandaId],
+        references: [comandasTable.id],
+    }),
+    stockItem: one(stockItemsTable, {
+        fields: [comandaItemsTable.stockItemId],
+        references: [stockItemsTable.id],
+    }),
+}));
+
+// ============== END BAR FEATURE ==============
 
 // Junction table for Comics and Shows
 export const comicsShowsTable = pgTable('comics_shows', {
@@ -165,6 +254,8 @@ export type SelectComicShow = typeof comicsShowsTable.$inferSelect;
 // Relations
 export const showsRelations = relations(showsTable, ({ many }) => ({
     comicsShows: many(comicsShowsTable),
+    barSessions: many(barSessionsTable),
+    stockTransactions: many(stockTransactionsTable),
 }));
 
 export const comicsRelations = relations(comicsTable, ({ many }) => ({
