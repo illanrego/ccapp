@@ -20,7 +20,6 @@ import {
     AlertDialogDescription,
     AlertDialogFooter,
     AlertDialogCancel,
-    AlertDialogAction,
 } from "@/components/ui/alert-dialog";
 import { SelectComanda, SelectStockItem } from "@/db/schema";
 import { ComandaWithItems } from "../actions/comanda.action";

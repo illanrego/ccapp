@@ -45,6 +45,6 @@ export async function addShowService(show: Omit<InsertShow, 'id'>, comicIds: str
 }
 
 // Keep the old function for backward compatibility
-export async function addDiaService(dia: any, comicIds: string[]) {
+export async function addDiaService(dia: Omit<InsertShow, 'id'>, comicIds: string[]) {
     return addShowService(dia, comicIds);
 } 

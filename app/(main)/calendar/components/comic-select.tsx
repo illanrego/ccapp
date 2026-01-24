@@ -19,7 +19,6 @@ interface ComicSelectProps {
 
 export function ComicSelect({ value, onChange, excludeComicIds = [] }: ComicSelectProps) {
   const [comics, setComics] = useState<SelectComic[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchComics = async () => {
@@ -28,8 +27,6 @@ export function ComicSelect({ value, onChange, excludeComicIds = [] }: ComicSele
         setComics(data);
       } catch (error) {
         console.error("Failed to fetch comics:", error);
-      } finally {
-        setIsLoading(false);
       }
     };
 
