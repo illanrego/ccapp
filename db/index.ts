@@ -5,5 +5,7 @@ import * as schema from './schema';
 
 config({ path: '.env' }); 
 
-const client = postgres(process.env.DATABASE_URL!);
+const client = postgres(process.env.DATABASE_URL!, {
+  prepare: false, // Required for Neon serverless
+});
 export const db = drizzle(client, { schema });
