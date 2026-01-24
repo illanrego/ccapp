@@ -38,8 +38,8 @@ export async function updateShow(id: number, formData: FormData) {
             startTime: startTime || null,
             showName: showName || null,
             ticketsSold,
-            ticketsRevenue: ticketsRevenue as any, // Using any as a workaround for the type mismatch
-            barRevenue: barRevenue as any, // Using any as a workaround for the type mismatch
+            ticketsRevenue: ticketsRevenue !== null ? ticketsRevenue.toString() : null,
+            barRevenue: barRevenue !== null ? barRevenue.toString() : null,
             showQuality: showQuality || null,
             isFiftyFifty,
             freeTickets,
