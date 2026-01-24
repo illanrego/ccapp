@@ -270,7 +270,7 @@ export async function closeComandaService(
 
 // Helper to recalculate comanda totals
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function recalculateComandaTotals(tx: typeof db, comandaId: number): Promise<void> {
+async function recalculateComandaTotals(tx: any, comandaId: number): Promise<void> {
     // Sum all items
     const result = await tx
         .select({
@@ -301,7 +301,7 @@ async function recalculateComandaTotals(tx: typeof db, comandaId: number): Promi
 
 // Helper to recalculate session totals
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function recalculateSessionTotals(tx: typeof db, sessionId: number): Promise<void> {
+async function recalculateSessionTotals(tx: any, sessionId: number): Promise<void> {
     // Get all paid comandas
     const result = await tx
         .select({
