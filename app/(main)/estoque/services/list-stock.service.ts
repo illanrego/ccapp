@@ -1,6 +1,6 @@
 import { db } from "@/db";
 import { stockItemsTable, SelectStockItem } from "@/db/schema";
-import { asc, desc, sql } from "drizzle-orm";
+import { asc } from "drizzle-orm";
 
 export interface StockItemWithStats extends SelectStockItem {
     margin: number; // Profit margin percentage

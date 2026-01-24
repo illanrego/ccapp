@@ -16,16 +16,11 @@ import { Badge } from "@/components/ui/badge";
 import { 
     DollarSign, 
     TrendingUp, 
-    Users, 
-    Calendar,
     CreditCard,
     Banknote,
     Smartphone,
-    Package,
     Ticket,
     Beer,
-    ArrowUpRight,
-    ArrowDownRight,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import {
@@ -33,7 +28,6 @@ import {
     getOverallSummary,
     getPaymentMethodSummary,
     getTopSellingItems,
-    getStockPurchaseCosts,
     ShowFinancialSummary,
     OverallSummary,
     PaymentMethodSummary,
@@ -45,7 +39,6 @@ export default function FinanceiroPage() {
     const [summary, setSummary] = useState<OverallSummary | null>(null);
     const [payments, setPayments] = useState<PaymentMethodSummary | null>(null);
     const [topItems, setTopItems] = useState<TopSellingItem[]>([]);
-    const [purchaseCosts, setPurchaseCosts] = useState(0);
     const [loading, setLoading] = useState(true);
     
     // Date filters
@@ -55,19 +48,17 @@ export default function FinanceiroPage() {
     const loadData = async () => {
         setLoading(true);
         try {
-            const [showsData, summaryData, paymentsData, topItemsData, costsData] = await Promise.all([
+            const [showsData, summaryData, paymentsData, topItemsData] = await Promise.all([
                 getShowsFinancialSummary(startDate || undefined, endDate || undefined),
                 getOverallSummary(startDate || undefined, endDate || undefined),
                 getPaymentMethodSummary(startDate || undefined, endDate || undefined),
                 getTopSellingItems(10, startDate || undefined, endDate || undefined),
-                getStockPurchaseCosts(startDate || undefined, endDate || undefined),
             ]);
             
             setShows(showsData);
             setSummary(summaryData);
             setPayments(paymentsData);
             setTopItems(topItemsData);
-            setPurchaseCosts(costsData);
         } catch (error) {
             console.error('Error loading financial data:', error);
         } finally {
@@ -77,6 +68,7 @@ export default function FinanceiroPage() {
 
     useEffect(() => {
         loadData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const handleFilter = () => {

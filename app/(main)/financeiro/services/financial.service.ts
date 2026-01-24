@@ -7,7 +7,7 @@ import {
     stockItemsTable,
     stockTransactionsTable 
 } from "@/db/schema";
-import { eq, sql, desc, and, gte, lte, sum } from "drizzle-orm";
+import { eq, sql, desc, and, gte, lte } from "drizzle-orm";
 
 export interface ShowFinancialSummary {
     showId: number;
@@ -135,8 +135,6 @@ export async function getPaymentMethodSummaryService(
     startDate?: string,
     endDate?: string
 ): Promise<PaymentMethodSummary> {
-    const conditions = [eq(comandasTable.status, 'paga')];
-    
     // We need to join with bar_sessions and shows to filter by date
     const result = await db
         .select({

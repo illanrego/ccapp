@@ -14,7 +14,6 @@ import {
     AlertTriangle,
     Ticket,
     ArrowRight,
-    Sparkles,
     BarChart3,
     Star,
     Laugh,
