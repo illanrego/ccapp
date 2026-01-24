@@ -1,7 +1,7 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { Menu, Home, Calendar, Users, Package2, Beer, Clock } from "lucide-react"
+import { Menu, Home, Calendar, Users, Package2, Beer, DollarSign, Clock } from "lucide-react"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { cn } from "@/lib/utils"
 
@@ -31,7 +31,7 @@ export function Sidebar({ className }: { className?: string }) {
               className="w-full justify-start gap-2"
               asChild
             >
-              <Link href="/schedule"><Clock className="h-5 w-5" /> Schedule</Link>
+              <Link href="/schedule"><Clock className="h-5 w-5" /> Agenda</Link>
             </Button>
             <Button
               variant="ghost"
@@ -53,6 +53,13 @@ export function Sidebar({ className }: { className?: string }) {
               asChild
             >
               <Link href="/bar"><Beer className="h-5 w-5" /> Bar</Link>
+            </Button>
+            <Button
+              variant="ghost"
+              className="w-full justify-start gap-2"
+              asChild
+            >
+              <Link href="/financeiro"><DollarSign className="h-5 w-5" /> Financeiro</Link>
             </Button>
           </div>
         </div>
