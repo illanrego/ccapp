@@ -67,31 +67,31 @@ export function ComicCard({ comic, avgTicketsSold, avgBarRevenue, onComicUpdated
           <div className="flex-1">
             <h3 className="text-2xl font-bold tracking-tight mb-2">{comic.name}</h3>
             <div className="flex items-center gap-3 mb-3">
-              {comic.class && (
-                <div className="inline-block px-2 py-1 rounded-md bg-primary/10 text-primary text-sm font-medium">
-                  Class {comic.class}
-                </div>
-              )}
+                            {comic.class && (
+                                <div className="inline-block px-2 py-1 rounded-md bg-primary/10 text-primary text-sm font-medium">
+                                  Classe {comic.class}
+                                </div>
+                              )}
               {comic.city && (
                 <span className="text-sm text-muted-foreground">
                   {comic.city}
                 </span>
               )}
             </div>
-            <div className="flex items-center gap-4 text-sm text-muted-foreground">
-              <div className="flex items-center">
-                <Users className="h-4 w-4 mr-1" />
-                {comic.socialMedia?.toLocaleString() || "No followers"}
-              </div>
-              <div className="flex items-center">
-                <Ticket className="h-4 w-4 mr-1" />
-                {Math.round(avgTicketsSold)} avg
-              </div>
-              <div className="flex items-center">
-                <Beer className="h-4 w-4 mr-1" />
-                R${avgBarRevenue.toFixed(2)} avg
-              </div>
-            </div>
+                            <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                              <div className="flex items-center">
+                                <Users className="h-4 w-4 mr-1" />
+                                {comic.socialMedia?.toLocaleString() || "Sem seguidores"}
+                              </div>
+                              <div className="flex items-center">
+                                <Ticket className="h-4 w-4 mr-1" />
+                                {Math.round(avgTicketsSold)} média
+                              </div>
+                              <div className="flex items-center">
+                                <Beer className="h-4 w-4 mr-1" />
+                                R${avgBarRevenue.toFixed(2)} média
+                              </div>
+                            </div>
           </div>
         </CardContent>
       </Link>
@@ -115,19 +115,19 @@ export function ComicCard({ comic, avgTicketsSold, avgBarRevenue, onComicUpdated
           </AlertDialogTrigger>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Delete Comic</AlertDialogTitle>
+              <AlertDialogTitle>Excluir Comic</AlertDialogTitle>
               <AlertDialogDescription>
-                Are you sure you want to delete &quot;{comic.name}&quot;? This action cannot be undone and will remove all associated data including show history.
+                Tem certeza que deseja excluir &quot;{comic.name}&quot;? Esta ação não pode ser desfeita e removerá todos os dados associados, incluindo histórico de shows.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
               <AlertDialogAction 
                 onClick={handleDelete}
                 disabled={isDeleting}
                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               >
-                {isDeleting ? "Deleting..." : "Delete"}
+                {isDeleting ? "Excluindo..." : "Excluir"}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

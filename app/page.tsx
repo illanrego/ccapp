@@ -85,7 +85,7 @@ export default function HomePage() {
                             {greeting}!
                         </span>
                         <p className="text-base font-normal text-muted-foreground mt-1">
-                            Comedy Club Dashboard
+                            Painel de Controle
                         </p>
                     </div>
                 </h1>
@@ -391,7 +391,7 @@ export default function HomePage() {
                                         <div className="flex items-center gap-1.5 text-sm">
                                             <Ticket className="h-4 w-4 text-muted-foreground" />
                                             <span className="font-semibold">{Math.round(comic.avgTickets)}</span>
-                                            <span className="text-muted-foreground">avg</span>
+                                            <span className="text-muted-foreground">média</span>
                                         </div>
                                     </div>
                                 ))}

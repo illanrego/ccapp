@@ -17,7 +17,7 @@ const geistMono = localFont({
 
 export const metadata: Metadata = {
   title: "Comedy Club",
-  description: "Comedy Club Management System",
+  description: "Sistema de Gestão do Comedy Club",
 };
 
 export default function RootLayout({
@@ -26,7 +26,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="pt-BR" suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <ThemeProvider
           attribute="class"
@@ -35,14 +35,19 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <div className="flex min-h-screen">
-            <div className="hidden md:flex">
-              <Sidebar className="w-72 border-r" />
-            </div>
-            <div className="flex-1">
-              <div className="h-16 border-b px-4 flex items-center md:hidden">
+            {/* Desktop Sidebar */}
+            <aside className="hidden md:flex md:w-80 md:flex-col md:fixed md:inset-y-0 border-r border-sidebar-border bg-sidebar">
+              <Sidebar className="flex-1" />
+            </aside>
+            
+            {/* Main Content */}
+            <div className="flex-1 md:pl-80">
+              {/* Mobile Header */}
+              <header className="sticky top-0 z-40 h-16 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4 flex items-center md:hidden">
                 <MobileSidebar />
-              </div>
-              <main className="p-8">
+                <span className="ml-4 font-semibold">Comedy Club</span>
+              </header>
+              <main className="p-6 md:p-8">
                 {children}
               </main>
             </div>

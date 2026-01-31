@@ -2,12 +2,11 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus } from "lucide-react";
+import { Plus, Search, SlidersHorizontal } from "lucide-react";
 import { listComics, ComicWithAvgTickets } from "./actions/list-comics.action";
 import { ComicCard } from "./components/comic-card";
 import { AddComicDialog } from "./components/add-comic-dialog";
 import { useState, useEffect, useMemo } from "react";
-import { comicClassEnum } from "@/db/schema";
 import {
   Select,
   SelectContent,
@@ -15,6 +14,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { Badge } from "@/components/ui/badge";
+
+// Define the correct order: S (most powerful) first, then A, B, C
+const CLASS_ORDER = ['S', 'A', 'B', 'C'] as const;
 
 export default function ComicsPage() {
   const [comics, setComics] = useState<ComicWithAvgTickets[]>([]);
@@ -22,6 +30,7 @@ export default function ComicsPage() {
   const [selectedClass, setSelectedClass] = useState<string | null>(null);
   const [selectedCity, setSelectedCity] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<'avgTickets' | 'avgBarRevenue' | 'name'>('avgTickets');
+  const [filtersOpen, setFiltersOpen] = useState(false);
   
   useEffect(() => {
     const fetchComics = async () => {
@@ -52,7 +61,7 @@ export default function ComicsPage() {
   // Group comics by class
   const comicsByClass = useMemo(() => {
     const grouped = filteredComics.reduce((acc, comic) => {
-      const comicClass = comic.class || 'Unclassified';
+      const comicClass = comic.class || 'Sem Classe';
       if (!acc[comicClass]) {
         acc[comicClass] = [];
       }
@@ -73,8 +82,8 @@ export default function ComicsPage() {
       });
     });
 
-    // Return classes in order: S, A, B, C, Unclassified
-    const orderedClasses = ['S', 'A', 'B', 'C', 'Unclassified'];
+    // Return classes in order: S, A, B, C, Sem Classe
+    const orderedClasses = ['S', 'A', 'B', 'C', 'Sem Classe'];
     return orderedClasses.reduce((acc, classKey) => {
       if (grouped[classKey]?.length > 0) {
         acc[classKey] = grouped[classKey];
@@ -88,75 +97,160 @@ export default function ComicsPage() {
     setComics(updatedComics);
   };
 
+  // Count active filters
+  const activeFilterCount = [
+    selectedClass && selectedClass !== 'all',
+    selectedCity && selectedCity !== 'all',
+    sortBy !== 'avgTickets'
+  ].filter(Boolean).length;
+
   return (
-    <div className="container py-8">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Comics</h1>
+    <div className="container py-4 md:py-8 px-4 md:px-8">
+      {/* Header - Mobile optimized */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+        <h1 className="text-2xl md:text-3xl font-bold">Comics</h1>
         <AddComicDialog onComicAdded={handleComicUpdate}>
-          <Button>
+          <Button className="w-full sm:w-auto">
             <Plus className="mr-2 h-4 w-4" />
-            Add Comic
+            Adicionar Comic
           </Button>
         </AddComicDialog>
       </div>
 
-      <div className="flex gap-4 mb-6">
-        <div className="flex-1">
+      {/* Search and Filters - Mobile optimized */}
+      <div className="space-y-4 mb-6">
+        {/* Search bar - always visible */}
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search by name..."
+            placeholder="Buscar por nome..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="max-w-sm"
+            className="pl-10 w-full"
           />
         </div>
-        <Select value={selectedCity || undefined} onValueChange={setSelectedCity}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Filter by city" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Cities</SelectItem>
-            {uniqueCities.map((city) => (
-              <SelectItem key={city} value={city}>
-                {city}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Select value={selectedClass || undefined} onValueChange={setSelectedClass}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Filter by class" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Classes</SelectItem>
-            {(Object.values(comicClassEnum.enumValues) as string[]).map((classType) => (
-              <SelectItem key={classType} value={classType}>
-                Class {classType}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Select value={sortBy} onValueChange={(value: 'avgTickets' | 'avgBarRevenue' | 'name') => setSortBy(value)}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Sort by" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="avgTickets">Average Tickets</SelectItem>
-            <SelectItem value="avgBarRevenue">Average Bar Revenue</SelectItem>
-            <SelectItem value="name">Name</SelectItem>
-          </SelectContent>
-        </Select>
+
+        {/* Desktop filters */}
+        <div className="hidden md:flex gap-4 flex-wrap">
+          <Select value={selectedCity || undefined} onValueChange={setSelectedCity}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Filtrar por cidade" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas as Cidades</SelectItem>
+              {uniqueCities.map((city) => (
+                <SelectItem key={city} value={city}>
+                  {city}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={selectedClass || undefined} onValueChange={setSelectedClass}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Filtrar por classe" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas as Classes</SelectItem>
+              {CLASS_ORDER.map((classType) => (
+                <SelectItem key={classType} value={classType}>
+                  Classe {classType}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={sortBy} onValueChange={(value: 'avgTickets' | 'avgBarRevenue' | 'name') => setSortBy(value)}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Ordenar por" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="avgTickets">Média de Ingressos</SelectItem>
+              <SelectItem value="avgBarRevenue">Média de Receita Bar</SelectItem>
+              <SelectItem value="name">Nome</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Mobile filters - collapsible */}
+        <div className="md:hidden">
+          <Collapsible open={filtersOpen} onOpenChange={setFiltersOpen}>
+            <CollapsibleTrigger asChild>
+              <Button variant="outline" className="w-full justify-between">
+                <div className="flex items-center gap-2">
+                  <SlidersHorizontal className="h-4 w-4" />
+                  Filtros
+                </div>
+                {activeFilterCount > 0 && (
+                  <Badge variant="secondary" className="ml-2">
+                    {activeFilterCount}
+                  </Badge>
+                )}
+              </Button>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="pt-4 space-y-3">
+              <Select value={selectedCity || undefined} onValueChange={setSelectedCity}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Filtrar por cidade" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas as Cidades</SelectItem>
+                  {uniqueCities.map((city) => (
+                    <SelectItem key={city} value={city}>
+                      {city}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={selectedClass || undefined} onValueChange={setSelectedClass}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Filtrar por classe" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas as Classes</SelectItem>
+                  {CLASS_ORDER.map((classType) => (
+                    <SelectItem key={classType} value={classType}>
+                      Classe {classType}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={sortBy} onValueChange={(value: 'avgTickets' | 'avgBarRevenue' | 'name') => setSortBy(value)}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Ordenar por" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="avgTickets">Média de Ingressos</SelectItem>
+                  <SelectItem value="avgBarRevenue">Média de Receita Bar</SelectItem>
+                  <SelectItem value="name">Nome</SelectItem>
+                </SelectContent>
+              </Select>
+            </CollapsibleContent>
+          </Collapsible>
+        </div>
       </div>
 
+      {/* Comics Grid */}
       <div className="space-y-8">
         {Object.entries(comicsByClass).map(([classKey, classComics]) => (
           <div key={classKey} className="space-y-4">
             <div className="flex items-center gap-4">
-              <h2 className="text-2xl font-semibold">
-                Class {classKey}
+              <h2 className="text-xl md:text-2xl font-semibold whitespace-nowrap">
+                Classe {classKey}
               </h2>
+              <Badge 
+                variant="outline" 
+                className={
+                  classKey === 'S' ? 'bg-gradient-to-r from-yellow-500/20 to-amber-500/20 border-yellow-500/50 text-yellow-600' :
+                  classKey === 'A' ? 'bg-purple-500/10 border-purple-500/50 text-purple-600' :
+                  classKey === 'B' ? 'bg-blue-500/10 border-blue-500/50 text-blue-600' :
+                  classKey === 'C' ? 'bg-green-500/10 border-green-500/50 text-green-600' :
+                  ''
+                }
+              >
+                {classComics.length}
+              </Badge>
               <div className="h-px flex-1 bg-border" />
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
               {classComics.map((comic) => (
                 <ComicCard 
                   key={comic.id} 

@@ -15,10 +15,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { comicClassEnum, SelectComic } from "@/db/schema";
+import { SelectComic } from "@/db/schema";
 import { addComic } from "../actions/add-comic.action";
 import { useState } from "react";
 import { updateComic } from "../actions/update-comic.action";
+
+// Define the correct order: S (most powerful) first, then A, B, C
+const CLASS_ORDER = ['S', 'A', 'B', 'C'] as const;
 
 interface AddComicDialogProps {
   children: React.ReactNode;
@@ -46,11 +49,11 @@ export function AddComicDialog({ children, onComicAdded, comic, mode = 'add' }: 
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>{mode === 'edit' ? 'Edit Comic' : 'Add New Comic'}</DialogTitle>
+          <DialogTitle>{mode === 'edit' ? 'Editar Comic' : 'Adicionar Novo Comic'}</DialogTitle>
         </DialogHeader>
         <form action={onSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="name">Name</Label>
+            <Label htmlFor="name">Nome</Label>
             <Input 
               id="name" 
               name="name" 
@@ -60,7 +63,7 @@ export function AddComicDialog({ children, onComicAdded, comic, mode = 'add' }: 
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="picUrl">Picture URL</Label>
+            <Label htmlFor="picUrl">URL da Foto</Label>
             <Input 
               id="picUrl" 
               name="picUrl" 
@@ -70,7 +73,7 @@ export function AddComicDialog({ children, onComicAdded, comic, mode = 'add' }: 
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="city">City</Label>
+            <Label htmlFor="city">Cidade</Label>
             <Input 
               id="city" 
               name="city" 
@@ -79,7 +82,7 @@ export function AddComicDialog({ children, onComicAdded, comic, mode = 'add' }: 
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="socialMedia">Social Media Followers</Label>
+            <Label htmlFor="socialMedia">Seguidores nas Redes</Label>
             <Input 
               id="socialMedia" 
               name="socialMedia" 
@@ -89,15 +92,15 @@ export function AddComicDialog({ children, onComicAdded, comic, mode = 'add' }: 
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="class">Class</Label>
+            <Label htmlFor="class">Classe</Label>
             <Select name="class" defaultValue={comic?.class || undefined}>
               <SelectTrigger>
-                <SelectValue placeholder="Select a class" />
+                <SelectValue placeholder="Selecione uma classe" />
               </SelectTrigger>
               <SelectContent>
-                {(Object.values(comicClassEnum.enumValues) as string[]).map((classType) => (
+                {CLASS_ORDER.map((classType) => (
                   <SelectItem key={classType} value={classType}>
-                    Class {classType}
+                    Classe {classType}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -105,7 +108,7 @@ export function AddComicDialog({ children, onComicAdded, comic, mode = 'add' }: 
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="time">Stage Time (minutes)</Label>
+            <Label htmlFor="time">Tempo de Palco (minutos)</Label>
             <Input 
               id="time" 
               name="time" 
@@ -115,7 +118,7 @@ export function AddComicDialog({ children, onComicAdded, comic, mode = 'add' }: 
           </div>
           
           <Button type="submit" className="w-full">
-            {mode === 'edit' ? 'Save Changes' : 'Add Comic'}
+            {mode === 'edit' ? 'Salvar Alterações' : 'Adicionar Comic'}
           </Button>
         </form>
       </DialogContent>

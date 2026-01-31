@@ -293,11 +293,11 @@ export default function SchedulePage() {
         <div className="flex flex-col items-center gap-6 mb-8">
           <div className="flex items-center justify-center gap-3">
             <CalendarIcon className="h-8 w-8" />
-            <h1 className="text-6xl font-bold">Schedule</h1>
+            <h1 className="text-6xl font-bold">Agenda</h1>
           </div>
           <p className="text-lg text-muted-foreground text-center max-w-2xl">
-            Drag and drop comics to schedule them for shows. Use the filters to find the right comics, 
-            then apply your schedule to the actual calendar when ready.
+            Arraste e solte os comics para agendar shows. Use os filtros para encontrar os comics certos,
+            depois aplique sua agenda ao calendário quando estiver pronto.
           </p>
         </div>
 
@@ -316,7 +316,7 @@ export default function SchedulePage() {
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
-                      placeholder="Search comics..."
+                      placeholder="Buscar comics..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       className="pl-10"
@@ -325,23 +325,23 @@ export default function SchedulePage() {
 
                   <Select value={selectedClass || undefined} onValueChange={setSelectedClass}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Filter by class" />
+                      <SelectValue placeholder="Filtrar por classe" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">All Classes</SelectItem>
-                      <SelectItem value="S">Class S</SelectItem>
-                      <SelectItem value="A">Class A</SelectItem>
-                      <SelectItem value="B">Class B</SelectItem>
-                      <SelectItem value="C">Class C</SelectItem>
+                      <SelectItem value="all">Todas as Classes</SelectItem>
+                      <SelectItem value="S">Classe S</SelectItem>
+                      <SelectItem value="A">Classe A</SelectItem>
+                      <SelectItem value="B">Classe B</SelectItem>
+                      <SelectItem value="C">Classe C</SelectItem>
                     </SelectContent>
                   </Select>
 
                   <Select value={selectedCity || undefined} onValueChange={setSelectedCity}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Filter by city" />
+                      <SelectValue placeholder="Filtrar por cidade" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">All Cities</SelectItem>
+                      <SelectItem value="all">Todas as Cidades</SelectItem>
                       {uniqueCities.map((city) => (
                         <SelectItem key={city} value={city}>
                           {city}
@@ -357,7 +357,7 @@ export default function SchedulePage() {
                     <div key={classKey} className="space-y-2">
                       <div className="flex items-center gap-2">
                         <Badge variant="outline" className={getClassColor(classKey)}>
-                          Class {classKey}
+                          Classe {classKey}
                         </Badge>
                         <span className="text-sm text-muted-foreground">
                           ({classComics.length})
@@ -426,7 +426,7 @@ export default function SchedulePage() {
                 className="w-full"
               >
                 <CheckCircle className="mr-2 h-4 w-4" />
-                Apply to Calendar
+                Aplicar ao Calendário
               </Button>
               <Button 
                 variant="outline" 
@@ -435,7 +435,7 @@ export default function SchedulePage() {
                 className="w-full"
               >
                 <RotateCcw className="mr-2 h-4 w-4" />
-                Reset Schedule
+                Limpar Agenda
               </Button>
             </div>
           </div>
@@ -548,18 +548,18 @@ export default function SchedulePage() {
         <Dialog open={showApplyDialog} onOpenChange={setShowApplyDialog}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Apply Schedule to Calendar</DialogTitle>
+              <DialogTitle>Aplicar Agenda ao Calendário</DialogTitle>
               <DialogDescription>
-                This will apply your scheduled shows to the actual calendar. 
-                This action cannot be undone.
+                Isso irá aplicar os shows agendados ao calendário. 
+                Esta ação não pode ser desfeita.
               </DialogDescription>
             </DialogHeader>
             <DialogFooter>
               <Button variant="outline" onClick={() => setShowApplyDialog(false)}>
-                Cancel
+                Cancelar
               </Button>
               <Button onClick={applyScheduleToCalendar} disabled={isApplying}>
-                {isApplying ? 'Applying...' : 'Apply Schedule'}
+                {isApplying ? 'Aplicando...' : 'Aplicar Agenda'}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -569,15 +569,15 @@ export default function SchedulePage() {
         <AlertDialog open={showResetDialog} onOpenChange={setShowResetDialog}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Reset Schedule</AlertDialogTitle>
+              <AlertDialogTitle>Limpar Agenda</AlertDialogTitle>
               <AlertDialogDescription>
-                This will clear all your scheduled shows. This action cannot be undone.
+                Isso irá limpar todos os shows agendados. Esta ação não pode ser desfeita.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
               <AlertDialogAction onClick={resetSchedule} disabled={isResetting}>
-                {isResetting ? 'Resetting...' : 'Reset Schedule'}
+                {isResetting ? 'Limpando...' : 'Limpar Agenda'}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

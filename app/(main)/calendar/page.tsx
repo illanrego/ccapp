@@ -306,19 +306,19 @@ export default function CalendarPage() {
   const getMetricDisplayName = () => {
     switch (selectedMetric) {
       case 'tickets':
-        return 'Ticket Sales';
+        return 'Vendas de Ingressos';
       case 'ticketRevenue':
-        return 'Ticket Revenue';
+        return 'Receita de Ingressos';
       case 'barRevenue':
-        return 'Bar Revenue';
+        return 'Receita do Bar';
       case 'totalRevenue':
-        return 'Total Revenue';
+        return 'Receita Total';
       case 'profit':
-        return 'Profit';
+        return 'Lucro';
       case 'comics':
         return 'Comics';
       default:
-        return 'Ticket Sales';
+        return 'Vendas de Ingressos';
     }
   };
 
@@ -385,7 +385,7 @@ export default function CalendarPage() {
   const formatTotalSum = (sum: number) => {
     switch (selectedMetric) {
       case 'tickets':
-        return `${sum} tickets`;
+        return `${sum} ingressos`;
       case 'ticketRevenue':
       case 'barRevenue':
       case 'totalRevenue':
@@ -401,14 +401,14 @@ export default function CalendarPage() {
 
   return (
     <div className="container max-w-[2000px] py-10">
-      <div className="flex flex-col items-center gap-6 mb-8">
+        <div className="flex flex-col items-center gap-6 mb-8">
         <div className="flex items-center justify-center">
-          <h1 className="text-6xl font-bold">Calendar</h1>
+          <h1 className="text-6xl font-bold">Calendário</h1>
         </div>
         <div className="flex flex-col items-center gap-4">
           <span className="text-3xl font-medium">{getMetricDisplayName()}</span>
           <span className="text-lg text-muted-foreground">
-            {currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+            {currentMonth.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}
           </span>
           <span className="text-2xl font-bold text-primary">
             {formatTotalSum(totalMetricSum)}
@@ -416,16 +416,16 @@ export default function CalendarPage() {
           
           {/* Metric selector tabs */}
           <div className="flex flex-col items-center gap-4">
-            <span className="text-sm font-medium text-muted-foreground">View by:</span>
+            <span className="text-sm font-medium text-muted-foreground">Visualizar por:</span>
             <Tabs value={selectedMetric} onValueChange={(value) => setSelectedMetric(value as MetricType)} className="w-full max-w-sm sm:max-w-md">
               <TabsList className="grid w-full grid-cols-6">
                 <TabsTrigger value="tickets" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
                   <Ticket className="h-3 w-3 sm:h-4 sm:w-4" />
-                  Tickets
+                  Ingressos
                 </TabsTrigger>
                 <TabsTrigger value="ticketRevenue" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
                   <DollarSign className="h-3 w-3 sm:h-4 sm:w-4" />
-                  Revenue
+                  Receita
                 </TabsTrigger>
                 <TabsTrigger value="barRevenue" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
                   <Beer className="h-3 w-3 sm:h-4 sm:w-4" />
@@ -437,7 +437,7 @@ export default function CalendarPage() {
                 </TabsTrigger>
                 <TabsTrigger value="profit" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
                   <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4" />
-                  Profit
+                  Lucro
                 </TabsTrigger>
                 <TabsTrigger value="comics" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
                   <Users className="h-3 w-3 sm:h-4 sm:w-4" />
@@ -669,7 +669,7 @@ export default function CalendarPage() {
                               setIsEditing(true);
                             }}
                           >
-                            + Add show
+                            + Adicionar show
                           </div>
                         </div>
                       )}

@@ -13,9 +13,9 @@ export default function Page() {
     return (
         <div className="mx-auto grid w-[350px] gap-6">
             <div className="grid gap-2 text-center">
-                <h1 className="text-3xl font-bold">Create an account</h1>
+                <h1 className="text-3xl font-bold">Criar uma conta</h1>
                 <p className="text-balance text-muted-foreground">
-                    Enter your details below to create your account
+                    Digite seus dados abaixo para criar sua conta
                 </p>
             </div>
             <form action={formAction} className="grid gap-4">
@@ -24,22 +24,22 @@ export default function Page() {
                 )}
                 <div className="grid gap-2">
                     <Label htmlFor="email">Email</Label>
-                    <Input name="email" id="email" placeholder="Enter your email" required />
+                    <Input name="email" id="email" placeholder="Digite seu email" required />
                 </div>
                 <div className="grid gap-2">
-                    <Label htmlFor="password">Password</Label>
-                    <Input type="password" name="password" id="password" placeholder="Enter your password" required />
+                    <Label htmlFor="password">Senha</Label>
+                    <Input type="password" name="password" id="password" placeholder="Digite sua senha" required />
                 </div>
                 <div className="grid gap-2">
-                    <Label htmlFor="confirmPassword">Confirm Password</Label>
-                    <Input type="password" name="confirmPassword" id="confirmPassword" placeholder="Confirm your password" required />
+                    <Label htmlFor="confirmPassword">Confirmar Senha</Label>
+                    <Input type="password" name="confirmPassword" id="confirmPassword" placeholder="Confirme sua senha" required />
                 </div>
-                <Button type="submit" className="w-full">Sign Up</Button>
+                <Button type="submit" className="w-full">Cadastrar</Button>
             </form>
             <div className="mt-4 text-center text-sm">
-                Already have an account?{" "}
+                Já tem uma conta?{" "}
                 <Link href="/auth/signin" className="underline">
-                    Sign in
+                    Entrar
                 </Link>
             </div>
         </div>
