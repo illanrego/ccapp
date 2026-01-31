@@ -86,16 +86,16 @@ export default function EstoquePage() {
     }, [items]);
 
     return (
-        <div className="container py-8">
-            <div className="flex justify-between items-center mb-8">
+        <div className="container py-4 md:py-8 px-4 md:px-6">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                 <div>
-                    <h1 className="text-3xl font-bold">Estoque</h1>
-                    <p className="text-muted-foreground mt-1">
+                    <h1 className="text-2xl md:text-3xl font-bold">Estoque</h1>
+                    <p className="text-muted-foreground mt-1 text-sm md:text-base">
                         Gerencie o inventário do bar
                     </p>
                 </div>
                 <AddStockDialog onStockAdded={fetchItems}>
-                    <Button>
+                    <Button className="w-full sm:w-auto">
                         <Plus className="mr-2 h-4 w-4" />
                         Adicionar Item
                     </Button>
@@ -103,44 +103,44 @@ export default function EstoquePage() {
             </div>
 
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6">
                 <Card>
-                    <CardContent className="pt-6">
-                        <div className="flex items-center gap-3">
-                            <div className="p-2 rounded-lg bg-primary/10">
-                                <Package className="h-5 w-5 text-primary" />
+                    <CardContent className="pt-4 md:pt-6 px-3 md:px-6">
+                        <div className="flex items-center gap-2 md:gap-3">
+                            <div className="p-1.5 md:p-2 rounded-lg bg-primary/10 shrink-0">
+                                <Package className="h-4 w-4 md:h-5 md:w-5 text-primary" />
                             </div>
-                            <div>
-                                <p className="text-sm text-muted-foreground">Total de Itens</p>
-                                <p className="text-2xl font-bold">{stats.totalItems}</p>
+                            <div className="min-w-0">
+                                <p className="text-xs md:text-sm text-muted-foreground truncate">Total de Itens</p>
+                                <p className="text-lg md:text-2xl font-bold">{stats.totalItems}</p>
                             </div>
                         </div>
                     </CardContent>
                 </Card>
                 
                 <Card>
-                    <CardContent className="pt-6">
-                        <div className="flex items-center gap-3">
-                            <div className="p-2 rounded-lg bg-yellow-500/10">
-                                <AlertTriangle className="h-5 w-5 text-yellow-500" />
+                    <CardContent className="pt-4 md:pt-6 px-3 md:px-6">
+                        <div className="flex items-center gap-2 md:gap-3">
+                            <div className="p-1.5 md:p-2 rounded-lg bg-yellow-500/10 shrink-0">
+                                <AlertTriangle className="h-4 w-4 md:h-5 md:w-5 text-yellow-500" />
                             </div>
-                            <div>
-                                <p className="text-sm text-muted-foreground">Estoque Baixo</p>
-                                <p className="text-2xl font-bold">{stats.lowStockCount}</p>
+                            <div className="min-w-0">
+                                <p className="text-xs md:text-sm text-muted-foreground truncate">Estoque Baixo</p>
+                                <p className="text-lg md:text-2xl font-bold">{stats.lowStockCount}</p>
                             </div>
                         </div>
                     </CardContent>
                 </Card>
                 
                 <Card>
-                    <CardContent className="pt-6">
-                        <div className="flex items-center gap-3">
-                            <div className="p-2 rounded-lg bg-green-500/10">
-                                <DollarSign className="h-5 w-5 text-green-500" />
+                    <CardContent className="pt-4 md:pt-6 px-3 md:px-6">
+                        <div className="flex items-center gap-2 md:gap-3">
+                            <div className="p-1.5 md:p-2 rounded-lg bg-green-500/10 shrink-0">
+                                <DollarSign className="h-4 w-4 md:h-5 md:w-5 text-green-500" />
                             </div>
-                            <div>
-                                <p className="text-sm text-muted-foreground">Valor em Estoque</p>
-                                <p className="text-2xl font-bold">
+                            <div className="min-w-0">
+                                <p className="text-xs md:text-sm text-muted-foreground truncate">Valor em Estoque</p>
+                                <p className="text-lg md:text-2xl font-bold truncate">
                                     R$ {stats.totalValue.toFixed(2).replace('.', ',')}
                                 </p>
                             </div>
@@ -149,14 +149,14 @@ export default function EstoquePage() {
                 </Card>
                 
                 <Card>
-                    <CardContent className="pt-6">
-                        <div className="flex items-center gap-3">
-                            <div className="p-2 rounded-lg bg-blue-500/10">
-                                <TrendingDown className="h-5 w-5 text-blue-500" />
+                    <CardContent className="pt-4 md:pt-6 px-3 md:px-6">
+                        <div className="flex items-center gap-2 md:gap-3">
+                            <div className="p-1.5 md:p-2 rounded-lg bg-blue-500/10 shrink-0">
+                                <TrendingDown className="h-4 w-4 md:h-5 md:w-5 text-blue-500" />
                             </div>
-                            <div>
-                                <p className="text-sm text-muted-foreground">Custo do Estoque</p>
-                                <p className="text-2xl font-bold">
+                            <div className="min-w-0">
+                                <p className="text-xs md:text-sm text-muted-foreground truncate">Custo do Estoque</p>
+                                <p className="text-lg md:text-2xl font-bold truncate">
                                     R$ {stats.totalCost.toFixed(2).replace('.', ',')}
                                 </p>
                             </div>
@@ -166,18 +166,18 @@ export default function EstoquePage() {
             </div>
 
             {/* Filters */}
-            <div className="flex flex-wrap gap-4 mb-6">
-                <div className="flex-1 min-w-[200px]">
+            <div className="flex flex-col sm:flex-row flex-wrap gap-3 md:gap-4 mb-6">
+                <div className="w-full sm:flex-1 sm:min-w-[200px]">
                     <Input
                         placeholder="Buscar por nome ou fornecedor..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="max-w-sm"
+                        className="w-full sm:max-w-sm"
                     />
                 </div>
                 
                 <Select value={selectedCategory || undefined} onValueChange={setSelectedCategory}>
-                    <SelectTrigger className="w-[180px]">
+                    <SelectTrigger className="w-full sm:w-[180px]">
                         <SelectValue placeholder="Categoria" />
                     </SelectTrigger>
                     <SelectContent>
@@ -190,31 +190,33 @@ export default function EstoquePage() {
                     </SelectContent>
                 </Select>
 
-                <div className="flex items-center gap-2 px-3 py-2 border rounded-md">
+                <div className="flex items-center gap-2 px-3 py-2 border rounded-md w-full sm:w-auto">
                     <Switch
                         id="lowStock"
                         checked={showLowStockOnly}
                         onCheckedChange={setShowLowStockOnly}
                     />
-                    <Label htmlFor="lowStock" className="text-sm cursor-pointer">
+                    <Label htmlFor="lowStock" className="text-sm cursor-pointer flex-1 sm:flex-initial">
                         Estoque baixo
                     </Label>
                 </div>
 
-                <div className="flex items-center gap-2 px-3 py-2 border rounded-md">
+                <div className="flex items-center gap-2 px-3 py-2 border rounded-md w-full sm:w-auto">
                     <Switch
                         id="activeOnly"
                         checked={showActiveOnly}
                         onCheckedChange={setShowActiveOnly}
                     />
-                    <Label htmlFor="activeOnly" className="text-sm cursor-pointer">
+                    <Label htmlFor="activeOnly" className="text-sm cursor-pointer flex-1 sm:flex-initial">
                         Apenas ativos
                     </Label>
                 </div>
             </div>
 
-            {/* Table */}
-            <StockTable items={filteredItems} onUpdate={fetchItems} />
+            {/* Table - scroll horizontal no mobile */}
+            <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
+                <StockTable items={filteredItems} onUpdate={fetchItems} />
+            </div>
         </div>
     );
 }

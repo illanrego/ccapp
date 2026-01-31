@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { Menu, Home, Calendar, Users, Package2, Beer, DollarSign, Clock, Laugh, Sparkles } from "lucide-react"
+import { Menu, Home, Calendar, Users, Package2, Beer, DollarSign, Clock, Laugh } from "lucide-react"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { cn } from "@/lib/utils"
 
@@ -108,9 +108,6 @@ function NavItem({
         )}>
           {item.label}
         </span>
-        {isActive && (
-          <Sparkles className="absolute right-4 h-4 w-4 text-white/60" />
-        )}
       </div>
     </Link>
   )
