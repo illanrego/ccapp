@@ -16,7 +16,7 @@ import {
     ArrowRight,
     BarChart3,
     Star,
-    Laugh,
+    MicVocal,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { getDashboardStats, DashboardStats } from "./(main)/home/actions/dashboard.action";
@@ -54,7 +54,7 @@ export default function HomePage() {
         return (
             <div className="container py-8 flex items-center justify-center min-h-[400px]">
                 <div className="text-center">
-                    <Laugh className="h-16 w-16 text-primary animate-bounce mx-auto mb-4" />
+                    <MicVocal className="h-16 w-16 text-primary animate-bounce mx-auto mb-4" />
                     <p className="text-muted-foreground">Carregando dashboard...</p>
                 </div>
             </div>
@@ -78,7 +78,7 @@ export default function HomePage() {
             <div className="mb-8">
                 <h1 className="text-4xl font-bold flex items-center gap-3">
                     <div className="p-2 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5">
-                        <Laugh className="h-10 w-10 text-primary" />
+                        <MicVocal className="h-10 w-10 text-primary" />
                     </div>
                     <div>
                         <span className="bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
@@ -218,7 +218,7 @@ export default function HomePage() {
                     <CardContent>
                         {stats.recentShows.length === 0 ? (
                             <div className="text-center py-12">
-                                <Laugh className="h-12 w-12 text-muted-foreground/30 mx-auto mb-3" />
+                                <MicVocal className="h-12 w-12 text-muted-foreground/30 mx-auto mb-3" />
                                 <p className="text-muted-foreground">
                                     Nenhum show nos últimos 30 dias
                                 </p>

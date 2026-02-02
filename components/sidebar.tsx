@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { Menu, Home, Calendar, Users, Package2, Beer, DollarSign, Clock, Laugh } from "lucide-react"
+import { Menu, Home, Calendar, Users, Package2, Beer, DollarSign, Clock, MicVocal } from "lucide-react"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { UserMenu } from "@/components/user-menu"
 import { cn } from "@/lib/utils"
@@ -131,12 +131,12 @@ export function Sidebar({ className, onNavClick, userEmail }: SidebarProps) {
           <div className="relative">
             <div className="absolute inset-0 bg-gradient-to-br from-primary/30 to-primary/10 rounded-2xl blur-xl" />
             <div className="relative flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-primary/80 shadow-lg">
-              <Laugh className="h-8 w-8 text-primary-foreground" />
+              <MicVocal className="h-8 w-8 text-primary-foreground" />
             </div>
           </div>
           <div>
             <h1 className="text-xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">
-              Comedy Club
+              Comedy Club Manager
             </h1>
             <p className="text-sm text-muted-foreground">Gestão</p>
           </div>

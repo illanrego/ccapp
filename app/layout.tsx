@@ -17,8 +17,8 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "Comedy Club",
-  description: "Sistema de Gestão do Comedy Club",
+  title: "Comedy Club Manager",
+  description: "Sistema de Gestão do Comedy Club Manager",
 };
 
 export default async function RootLayout({
@@ -49,7 +49,7 @@ export default async function RootLayout({
               {/* Mobile Header */}
               <header className="sticky top-0 z-40 h-16 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4 flex items-center md:hidden">
                 <MobileSidebar userEmail={userEmail} />
-                <span className="ml-4 font-semibold">Comedy Club</span>
+                <span className="ml-4 font-semibold">Comedy Club Manager</span>
               </header>
               <main className="p-6 md:p-8">
                 {children}
