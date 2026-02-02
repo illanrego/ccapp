@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Menu, Home, Calendar, Users, Package2, Beer, DollarSign, Clock, Laugh } from "lucide-react"
 import { ThemeToggle } from "@/components/theme-toggle"
+import { UserMenu } from "@/components/user-menu"
 import { cn } from "@/lib/utils"
 
 const navItems = [
@@ -113,7 +114,13 @@ function NavItem({
   )
 }
 
-export function Sidebar({ className, onNavClick }: { className?: string; onNavClick?: () => void }) {
+interface SidebarProps {
+  className?: string
+  onNavClick?: () => void
+  userEmail?: string | null
+}
+
+export function Sidebar({ className, onNavClick, userEmail }: SidebarProps) {
   const pathname = usePathname()
   
   return (
@@ -156,17 +163,31 @@ export function Sidebar({ className, onNavClick }: { className?: string; onNavCl
       </div>
 
       {/* Footer */}
-      <div className="px-6 py-6 border-t border-sidebar-border">
-        <div className="flex items-center justify-between">
-          <span className="text-sm text-muted-foreground">Tema</span>
-          <ThemeToggle />
+      <div className="border-t border-sidebar-border">
+        {/* User Menu */}
+        {userEmail && (
+          <div className="px-2 py-3 border-b border-sidebar-border">
+            <UserMenu email={userEmail} />
+          </div>
+        )}
+        
+        {/* Theme Toggle */}
+        <div className="px-6 py-4">
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-muted-foreground">Tema</span>
+            <ThemeToggle />
+          </div>
         </div>
       </div>
     </div>
   )
 }
 
-export function MobileSidebar() {
+interface MobileSidebarProps {
+  userEmail?: string | null
+}
+
+export function MobileSidebar({ userEmail }: MobileSidebarProps) {
   const [open, setOpen] = useState(false)
   
   return (
@@ -177,7 +198,7 @@ export function MobileSidebar() {
         </Button>
       </SheetTrigger>
       <SheetContent side="left" className="w-80 p-0">
-        <Sidebar onNavClick={() => setOpen(false)} />
+        <Sidebar onNavClick={() => setOpen(false)} userEmail={userEmail} />
       </SheetContent>
     </Sheet>
   )

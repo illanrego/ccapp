@@ -16,7 +16,7 @@ export async function signOut(): Promise<ActionResult> {
 
     const sessionCookie = lucia.createBlankSessionCookie();
     cookies().set(sessionCookie.name, sessionCookie.value, sessionCookie.attributes);
-    return redirect("/");
+    return redirect("/auth/signin");
 }
 
 interface ActionResult {
