@@ -124,7 +124,12 @@ export function Sidebar({ className, onNavClick, userEmail }: SidebarProps) {
   const pathname = usePathname()
   
   return (
-    <div className={cn("flex h-full flex-col bg-sidebar", className)}>
+    <div
+      className={cn(
+        "flex h-full min-h-0 flex-col bg-sidebar overflow-y-auto",
+        className
+      )}
+    >
       {/* Header / Branding */}
       <div className="px-6 py-8">
         <div className="flex items-center gap-4">

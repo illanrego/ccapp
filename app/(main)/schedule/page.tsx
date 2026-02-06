@@ -364,7 +364,29 @@ export default function SchedulePage() {
                         </span>
                       </div>
                       
-                      <Droppable droppableId={`class-${classKey}`} isDropDisabled>
+                      <Droppable
+                        droppableId={`class-${classKey}`}
+                        isDropDisabled
+                        renderClone={(provided, snapshot, rubric) => {
+                          const comic = classComics[rubric.source.index];
+                          if (!comic) return null;
+                          return (
+                            <div
+                              ref={provided.innerRef}
+                              {...provided.draggableProps}
+                              {...provided.dragHandleProps}
+                              className="flex items-center justify-center"
+                            >
+                              <Avatar className="h-10 w-10 shadow-lg">
+                                <AvatarImage src={comic.picUrl || undefined} alt={comic.name} />
+                                <AvatarFallback className="text-xs">
+                                  {comic.name.split(" ").map((n) => n[0]).join("")}
+                                </AvatarFallback>
+                              </Avatar>
+                            </div>
+                          );
+                        }}
+                      >
                         {(provided) => (
                           <div
                             ref={provided.innerRef}
@@ -381,13 +403,15 @@ export default function SchedulePage() {
                                   <div
                                     ref={provided.innerRef}
                                     {...provided.draggableProps}
-                                    {...provided.dragHandleProps}
                                     className={`p-3 border rounded-lg cursor-grab active:cursor-grabbing transition-colors ${
                                       snapshot.isDragging ? 'bg-accent shadow-lg' : 'bg-background hover:bg-accent/50'
                                     }`}
                                   >
                                     <div className="flex items-center gap-3">
-                                      <Avatar className="h-8 w-8">
+                                      <Avatar
+                                        className="h-8 w-8 cursor-grab active:cursor-grabbing"
+                                        {...provided.dragHandleProps}
+                                      >
                                         <AvatarImage src={comic.picUrl || undefined} alt={comic.name} />
                                         <AvatarFallback className="text-xs">
                                           {comic.name.split(' ').map((n) => n[0]).join('')}
@@ -460,8 +484,8 @@ export default function SchedulePage() {
                             <div 
                               ref={provided.innerRef}
                               {...provided.droppableProps}
-                              className={`w-full h-full min-h-[120px] p-2 ${
-                                snapshot.isDraggingOver ? 'bg-accent/50 border-2 border-dashed border-primary' : ''
+                              className={`w-full h-full min-h-[120px] p-2 overflow-y-auto ${
+                                snapshot.isDraggingOver ? 'bg-accent/50 ring-2 ring-primary ring-inset' : ''
                               }`}
                             >
                               <div className="text-right mb-2 font-medium">
@@ -531,7 +555,7 @@ export default function SchedulePage() {
                                 </div>
                               )}
                               
-                              {provided.placeholder}
+                              {/* No placeholder to keep day size fixed while dragging */}
                             </div>
                           )}
                         </Droppable>
