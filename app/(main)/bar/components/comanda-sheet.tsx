@@ -32,7 +32,7 @@ import {
     closeComanda,
     updateComandaClientName,
 } from "../actions/comanda.action";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Plus, Minus, Trash2, User, Percent, CreditCard, Banknote, Smartphone } from "lucide-react";
 
 interface ComandaSheetProps {
