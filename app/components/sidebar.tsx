@@ -45,22 +45,22 @@ export function Sidebar({ className }: React.HTMLAttributes<HTMLDivElement>) {
   const pathname = usePathname()
 
   return (
-    <div className={cn("pb-12", className)}>
-      <div className="space-y-4 py-4">
-        <div className="px-3 py-2">
-          <h2 className="mb-2 px-4 text-lg font-semibold tracking-tight">
+    <div className={cn("pb-8", className)}>
+      <div className="space-y-3 py-3">
+        <div className="px-2 py-1.5">
+          <h2 className="mb-1.5 px-3 text-sm font-medium tracking-tight text-muted-foreground">
             Comedy Club Manager
           </h2>
-          <div className="space-y-1">
+          <div className="space-y-0.5">
             {routes.map((route) => (
               <Button
                 key={route.href}
                 variant={pathname === route.href ? "secondary" : "ghost"}
-                className="w-full justify-start"
+                className="w-full justify-start h-9 text-sm font-normal"
                 asChild
               >
                 <Link href={route.href}>
-                  <route.icon className="mr-2 h-4 w-4" />
+                  <route.icon className="mr-2 h-3.5 w-3.5" />
                   {route.label}
                 </Link>
               </Button>
@@ -68,7 +68,7 @@ export function Sidebar({ className }: React.HTMLAttributes<HTMLDivElement>) {
           </div>
         </div>
       </div>
-      <div className="px-3 py-2">
+      <div className="px-2 py-1.5">
         <ModeToggle />
       </div>
     </div>

@@ -40,12 +40,12 @@ export default async function RootLayout({
         >
           <div className="flex min-h-screen">
             {/* Desktop Sidebar */}
-            <aside className="hidden md:flex md:w-80 md:flex-col md:fixed md:inset-y-0 border-r border-sidebar-border bg-sidebar">
+            <aside className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 border-r border-sidebar-border/50 bg-sidebar/95 backdrop-blur-sm">
               <Sidebar className="flex-1" userEmail={userEmail} />
             </aside>
             
             {/* Main Content */}
-            <div className="flex-1 md:pl-80">
+            <div className="flex-1 md:pl-64">
               {/* Mobile Header */}
               <header className="sticky top-0 z-40 h-16 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4 flex items-center md:hidden">
                 <MobileSidebar userEmail={userEmail} />

@@ -76,7 +76,6 @@ export function ComandaSheet({
     const [discount, setDiscount] = useState('');
     const [showPaymentDialog, setShowPaymentDialog] = useState(false);
     const [loading, setLoading] = useState(false);
-    const autoOpenedRef = useRef<number | null>(null);
 
     useEffect(() => {
         if (comanda) {
@@ -84,19 +83,6 @@ export function ComandaSheet({
             setDiscount(comanda.discount ? parseFloat(comanda.discount).toString() : '');
         }
     }, [comanda]);
-
-    // Auto-open comanda when sheet opens and comanda is "disponivel"
-    useEffect(() => {
-        if (open && comanda?.status === 'disponivel' && autoOpenedRef.current !== comanda.id) {
-            autoOpenedRef.current = comanda.id;
-            const formData = new FormData();
-            formData.append('comandaId', comanda.id.toString());
-            openComanda(formData).then(() => onUpdate());
-        }
-        if (!open) {
-            autoOpenedRef.current = null;
-        }
-    }, [open, comanda?.id, comanda?.status, onUpdate]);
 
     const details = comandaDetails;
 
@@ -114,6 +100,13 @@ export function ComandaSheet({
         if (!comanda) return;
         setLoading(true);
         try {
+            // If comanda is "disponivel", open it first before adding item
+            if (comanda.status === 'disponivel') {
+                const openFormData = new FormData();
+                openFormData.append('comandaId', comanda.id.toString());
+                await openComanda(openFormData);
+            }
+            
             const formData = new FormData();
             formData.append('comandaId', comanda.id.toString());
             formData.append('stockItemId', stockItemId.toString());

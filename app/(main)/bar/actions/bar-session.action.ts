@@ -62,6 +62,9 @@ export async function closeBarSession(formData: FormData) {
     try {
         await closeBarSessionService(sessionId);
         revalidatePath('/bar');
+        revalidatePath('/calendario');
+        revalidatePath('/financeiro');
+        revalidatePath('/');
     } catch (error) {
         console.error('Error closing bar session:', error);
         throw new Error('Falha ao fechar sessão do bar');

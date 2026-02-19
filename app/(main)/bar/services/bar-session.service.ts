@@ -99,12 +99,38 @@ export async function openBarSessionService(showId: number): Promise<SelectBarSe
 
 // Close a bar session
 export async function closeBarSessionService(sessionId: number): Promise<void> {
-    await db.update(barSessionsTable)
-        .set({
-            status: 'fechado',
-            closedAt: new Date(),
-        })
-        .where(eq(barSessionsTable.id, sessionId));
+    await db.transaction(async (tx) => {
+        // Get the session to retrieve totalRevenue and showId
+        const [session] = await tx
+            .select({
+                showId: barSessionsTable.showId,
+                totalRevenue: barSessionsTable.totalRevenue,
+            })
+            .from(barSessionsTable)
+            .where(eq(barSessionsTable.id, sessionId))
+            .limit(1);
+
+        if (!session) {
+            throw new Error('Session not found');
+        }
+
+        // Update the bar session status
+        await tx.update(barSessionsTable)
+            .set({
+                status: 'fechado',
+                closedAt: new Date(),
+            })
+            .where(eq(barSessionsTable.id, sessionId));
+
+        // Update the show's barRevenue with the session's totalRevenue
+        // Use '0' if totalRevenue is null to ensure the show reflects the actual bar revenue
+        const barRevenue = session.totalRevenue || '0';
+        await tx.update(showsTable)
+            .set({
+                barRevenue: barRevenue,
+            })
+            .where(eq(showsTable.id, session.showId));
+    });
 }
 
 // Get session by ID with show

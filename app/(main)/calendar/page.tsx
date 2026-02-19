@@ -242,9 +242,9 @@ export default function CalendarPage() {
         } else if (value >= 21) {
           return "rgba(255, 153, 0, 0.84)"; // Sunny yellow
         } else if (value >= 11) {
-          return "rgba(240, 0, 0, 0.75)"; // Orange
-        } else {
           return "rgba(255, 0, 0, 0.25)"; // Red
+        } else {
+          return "rgba(240, 0, 0, 0.75)"; // Orange
         }
       case 'ticketRevenue':
       case 'barRevenue':
@@ -255,9 +255,9 @@ export default function CalendarPage() {
         } else if (value >= 401) {
           return "rgba(255, 153, 0, 0.84)"; // Sunny yellow
         } else if (value >= 201) {
-          return "rgba(240, 0, 0, 0.75)"; // Orange
-        } else {
           return "rgba(255, 0, 0, 0.25)"; // Red
+        } else {
+          return "rgba(240, 0, 0, 0.75)"; // Orange
         }
       case 'totalRevenue':
         if (value >= 1601) {
@@ -267,9 +267,9 @@ export default function CalendarPage() {
         } else if (value >= 801) {
           return "rgba(255, 153, 0, 0.84)"; // Sunny yellow
         } else if (value >= 401) {
-          return "rgba(240, 0, 0, 0.75)"; // Orange
-        } else {
           return "rgba(255, 0, 0, 0.25)"; // Red
+        } else {
+          return "rgba(240, 0, 0, 0.75)"; // Orange
         }
       case 'profit':
         if (value >= 1251) {
@@ -281,9 +281,9 @@ export default function CalendarPage() {
         } else if (value >= 501) {
           return "rgba(255, 153, 0, 0.84)"; // Sunny yellow
         } else if (value >= 251) {
-          return "rgba(240, 0, 0, 0.75)"; // Orange
-        } else {
           return "rgba(255, 0, 0, 0.25)"; // Red
+        } else {
+          return "rgba(240, 0, 0, 0.75)"; // Orange
         }
       case 'comics':
         if (value >= 21) {
@@ -293,9 +293,9 @@ export default function CalendarPage() {
         } else if (value >= 11) {
           return "rgba(255, 153, 0, 0.84)"; // Sunny yellow
         } else if (value >= 6) {
-          return "rgba(240, 0, 0, 0.75)"; // Orange
-        } else {
           return "rgba(255, 0, 0, 0.25)"; // Red
+        } else {
+          return "rgba(240, 0, 0, 0.75)"; // Orange
         }
       default:
         return "rgba(255, 0, 0, 0.25)"; // Default red
@@ -370,8 +370,8 @@ export default function CalendarPage() {
     const showWithDate: ShowWithDateObject = {
       ...show,
       date: showDate,
-      ticketsRevenue: Number(show.ticketsRevenue),
-      barRevenue: Number(show.barRevenue),
+      ticketsRevenue: Number(show.ticketsRevenue) || 0,
+      barRevenue: Number(show.barRevenue) || 0,
     };
     
     if (selectedMetric === 'comics') {
